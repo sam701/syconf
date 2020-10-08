@@ -1,0 +1,16 @@
+[package]
+name = "syconf"
+version = "0.1.0"
+authors = ["Alexei Samokvalov <alexei@sam701.com>"]
+edition = "2018"
+
+
+[dependencies]
+syconf-lib = {path = "../syconf-lib"}
+serde = "1.0"
+serde_json = "1.0"
+serde_yaml = "0.8"
+toml = "0.5"
+tracing = "0.1"
+tracing-subscriber = { version = "0.2", features = ["fmt"] }
+clap = "2"

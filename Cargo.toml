@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "syconf-lib",
+    "syconf-bin",
+]
