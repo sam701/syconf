@@ -84,6 +84,7 @@ and helps to keep complex configuration lean.
 The letters `S` and `Y` in the name *SyConf* are the first and the last letter in the word *simplicity*.
 
 ## Goal
+TODO
 
 ## Previous Work
 * [JSON](https://www.json.org/json-en.html) - simple, great for machines, not very human friendly.
