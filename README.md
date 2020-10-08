@@ -36,6 +36,12 @@ and helps to keep complex configuration lean.
     in
     [3, add2(4)]
     ``` 
+* String interpolation
+    ```
+    let name = "alexei"
+    in
+    "hello ${name}"
+    ```
 * It is possible to split configuration in multiple files
     ```
     let instance_x = import "./instance_x.sy"
