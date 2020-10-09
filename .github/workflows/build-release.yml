@@ -13,7 +13,7 @@ jobs:
           name: linux-bin
           path: target/release/syconf-linux.zip
   build-macos:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1

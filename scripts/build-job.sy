@@ -1,5 +1,12 @@
+let runner_map = {
+    linux: "ubuntu-latest"
+    macos: "macos-latest"
+}
+
+in
+
 (os) => {
-    "runs-on": "ubuntu-latest"
+    "runs-on": runner_map[os]
     steps: [
         {uses: "actions/checkout@v2"},
         {
