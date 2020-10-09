@@ -5,7 +5,7 @@ use nom::lib::std::collections::HashMap;
 
 use crate::compiler::{Error, Location, methods, operators, Source};
 use crate::compiler::context::Context;
-use crate::compiler::node::{CodeNode, FunctionDefinition, NodeContent};
+use crate::compiler::node::{CodeNode, FunctionDefinition, NodeContent, HmEntry};
 use crate::compiler::value::{Func, Value};
 use crate::parser::{Expr, ExprWithLocation};
 use crate::parser::*;
@@ -134,9 +134,12 @@ impl Compiler {
             ConfigValue::Bool(x) => Ok(NodeContent::Resolved(Value::Bool(*x))),
             ConfigValue::Int(v) => Ok(NodeContent::Resolved(Value::Int(*v))),
             ConfigValue::String(s) => self.string(ctx, s),
-            ConfigValue::Object(hm) => hm.iter()
-                .map(|(k, v)| self.compile(ctx, v).map(|nv| (k.to_string(), nv)))
-                .collect::<Result<HashMap<String, CodeNode>, Error>>()
+            ConfigValue::HashMap(hm) => hm.iter()
+                .map(|HashMapEntry{key, value}| Ok(HmEntry{
+                    key: self.compile(ctx, key)?,
+                    value: self.compile(ctx, value)?
+                }))
+                .collect::<Result<Vec<HmEntry>, Error>>()
                 .map(NodeContent::HashMap),
             ConfigValue::List(list) => list.iter()
                 .map(|x| self.compile(ctx, x))

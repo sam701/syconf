@@ -87,9 +87,15 @@ fn func_concat() {
 }
 
 fn merge(args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.len() > 0, "Merge requires at least one argument as a hashmap");
-    let mut out = args[0].as_hashmap()?.clone();
-    for x in &args[1..] {
+    ensure!(args.len() > 0, "Merge requires at least one argument as a hashmap or a list of hashmaps");
+    let hm_list = if let Value::List(list) = &args[0] {
+        ensure!(args.len() == 1, "Merge expects either multiple hashmaps or a single list of hashmaps");
+        list.as_slice()
+    }else{
+        args
+    };
+    let mut out = hm_list[0].as_hashmap()?.clone();
+    for x in &hm_list[1..] {
         let li = x.as_hashmap()?.clone();
         out.extend(li.into_iter());
     }
@@ -107,6 +113,11 @@ fn func_merge() {
         {name: "alexei"},
         {age: 40},
     )"#).unwrap(), Value::HashMap(Rc::new(hm)));
+
+    assert_eq!(parse_string(r#"merge([
+        {name: "john"},
+        {age: 40},
+    ]) == {name: "john", age: 40}"#).unwrap(), Value::Bool(true));
 }
 
 fn fold(args: &[Value]) -> Result<Value, Error> {

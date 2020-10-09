@@ -23,52 +23,60 @@ pub enum Value {
 }
 
 #[derive(thiserror::Error, Debug)]
-#[error("Type Mismatch: expects {}", .expects)]
+#[error("Type Mismatch: expects {} but was {}", .expects, .was)]
 pub struct TypeMismatch {
     expects: String,
+    was: String,
 }
 
 impl Value {
+    fn fail(&self, expected: &str) -> TypeMismatch {
+        TypeMismatch{
+            expects: expected.to_string(),
+            was: format!("{:?}", self),
+        }
+    }
+
     pub fn as_int(&self) -> Result<i32, TypeMismatch> {
         if let Value::Int(x) = self {
             Ok(*x)
         } else {
-            Err(TypeMismatch { expects: "int".to_string() })
+            Err(self.fail("int"))
         }
     }
     pub fn as_str(&self) -> Result<&str, TypeMismatch> {
         if let Value::String(x) = self {
             Ok(x.as_str())
         } else {
-            Err(TypeMismatch { expects: "string".to_string() })
+            Err(self.fail("string"))
         }
     }
     pub fn as_bool(&self) -> Result<bool, TypeMismatch> {
         if let Value::Bool(x) = self {
             Ok(*x)
         } else {
-            Err(TypeMismatch { expects: "bool".to_string() })
+            Err(self.fail("bool"))
         }
     }
     pub fn as_list(&self) -> Result<&Vec<Value>, TypeMismatch> {
         if let Value::List(x) = self {
             Ok(x)
         } else {
-            Err(TypeMismatch { expects: "list".to_string() })
+            Err(self.fail("list"))
         }
     }
     pub fn as_hashmap(&self) -> Result<&HashMap<String, Value>, TypeMismatch> {
         if let Value::HashMap(x) = self {
             Ok(x)
         } else {
-            Err(TypeMismatch { expects: "hashmap".to_string() })
+            Err(self.fail("hashmap"))
         }
     }
     pub fn as_func(&self) -> Result<Func, TypeMismatch> {
         if let Value::Func(func) = self {
             Ok(func.clone())
         } else {
-            Err(TypeMismatch { expects: "function".to_string() })
+            Err(self.fail("function"))
         }
     }
 }

@@ -1,11 +1,16 @@
-use crate::compiler::{Value, Error};
 use std::rc::Rc;
+
+use crate::compiler::{Error, Value};
+use crate::parse_string;
+use std::cmp::min;
 
 pub fn method(method_name: &str) -> Option<&'static dyn Fn(&String, &[Value]) -> Result<Value, Error>> {
     Some(match method_name {
         "parse_json" => &parse_json,
         "parse_yaml" => &parse_yaml,
         "parse_toml" => &parse_toml,
+        "trim" => &trim,
+        "unindent" => &unindent,
         _ => return None,
     })
 }
@@ -31,3 +36,64 @@ fn parse_toml(string: &String, args: &[Value]) -> Result<Value, Error> {
     Ok(Value::HashMap(Rc::new(x)))
 }
 
+fn trim(string: &String, args: &[Value]) -> Result<Value, Error> {
+    ensure!(args.len() == 0, "'trim' does not take any arguments");
+    Ok(Value::String(Rc::new(string.trim().to_string())))
+}
+
+#[test]
+fn trim_string() {
+    assert_eq!(parse_string(r#"
+        "
+            abc
+            ".trim() == "abc"
+    "#).unwrap(), Value::Bool(true))
+}
+
+fn unindent(string: &String, args: &[Value]) -> Result<Value, Error> {
+    ensure!(args.len() == 0, "'unindent' does not take any arguments");
+    let mut prefixed_whitespaces: Vec<&str> = string.lines()
+        .filter(|x| !x.trim().is_empty())
+        .map(|x| &x[..x.find(|s| !char::is_whitespace(s)).unwrap_or(0)])
+        .collect();
+    prefixed_whitespaces.sort();
+
+    let prefix_len = match prefixed_whitespaces.len() {
+        0 => return Ok(Value::String(Rc::new(string.clone()))),
+        1 => prefixed_whitespaces[0].len(),
+        _ => {
+            let first: Vec<char> = prefixed_whitespaces[0].chars().collect();
+            let last: Vec<char> = prefixed_whitespaces.last().unwrap().chars().collect();
+            let mut cnt = 0;
+            for ix in 0..min(first.len(), last.len()) {
+                if first[ix] == last[ix] {
+                    cnt += 1;
+                }
+            }
+            cnt
+        }
+    };
+
+    let out = string.lines()
+        .map(|s| if s.trim().is_empty() {
+            ""
+        }else{
+            &s[prefix_len..]
+        })
+        .collect::<Vec<&str>>()
+        .join("\n");
+
+    Ok(Value::String(Rc::new(out)))
+}
+
+#[test]
+fn func_unindent() {
+    assert_eq!(parse_string(r#"
+        "
+
+            abc
+        def
+                    ghk
+        ".unindent()
+    "#).unwrap(), Value::String(Rc::new("\n\n    abc\ndef\n            ghk\n".to_string())))
+}

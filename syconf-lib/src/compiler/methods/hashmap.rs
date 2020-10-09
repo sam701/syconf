@@ -86,3 +86,13 @@ fn func_insert() {
         {aa: 33}.insert("bb", "abc") == {aa:33, bb:"abc"}
     "#).unwrap(), Value::Bool(true))
 }
+
+#[test]
+fn key_expr() {
+    assert_eq!(parse_string(r#"
+        let x = 3
+        in
+        {"abc${x}": 33} == {abc3:33}
+    "#).unwrap(), Value::Bool(true))
+}
+

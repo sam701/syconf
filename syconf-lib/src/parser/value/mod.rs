@@ -3,13 +3,14 @@ use std::collections::HashMap;
 use nom::branch::alt;
 use nom::bytes::complete::*;
 use nom::character::complete::*;
-use nom::combinator::{map, map_res, opt};
+use nom::combinator::{map, map_res, opt, rest_len};
 use nom::IResult;
 use nom::multi::separated_list;
 use nom::sequence::{delimited, pair, separated_pair, tuple};
 
-use super::*;
 use string::ConfigString;
+
+use super::*;
 
 pub mod string;
 
@@ -18,15 +19,21 @@ pub enum ConfigValue<'a> {
     Bool(bool),
     Int(i32),
     String(Vec<ConfigString<'a>>),
-    Object(HashMap<&'a str, ExprWithLocation<'a>>),
+    HashMap(Vec<HashMapEntry<'a>>),
     List(Vec<ExprWithLocation<'a>>),
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct HashMapEntry<'a> {
+    pub key: ExprWithLocation<'a>,
+    pub value: ExprWithLocation<'a>,
 }
 
 pub fn config_value(input: &str) -> IResult<&str, ConfigValue> {
     alt((
         map(boolean, ConfigValue::Bool),
         map_res(digit1, |s: &str| s.parse::<i32>().map(ConfigValue::Int)),
-        map(object, ConfigValue::Object),
+        map(hashmap, ConfigValue::HashMap),
         map(list, ConfigValue::List),
         map(string::parse, |x| ConfigValue::String(x)),
     ))(input)
@@ -42,22 +49,39 @@ fn boolean(input: &str) -> IResult<&str, bool> {
     )(input)
 }
 
-fn object_field(input: &str) -> IResult<&str, (&str, ExprWithLocation)> {
-    separated_pair(
-        identifier,
-        tuple((
-            ml_space0,
-            tag(":"),
-            ml_space0,
-        )),
-        expr,
+fn hashmap_entry(input: &str) -> IResult<&str, HashMapEntry> {
+    map(
+        separated_pair(
+            alt((
+                map(pair(
+                    rest_len,
+                    identifier,
+                ), |(rl, id)| raw_string(id).with_location(rl)),
+                expr,
+            )),
+            tuple((
+                ml_space0,
+                tag(":"),
+                ml_space0,
+            )),
+            expr,
+        ), |(key, value)| HashMapEntry { key, value },
     )(input)
 }
 
+fn raw_string(s: &str) -> Expr {
+    Expr::Value(ConfigValue::String(vec![ConfigString::Raw(s)]))
+}
+
 #[test]
-fn test_object_field() {
-    assert_eq!((object_field("abc : [ab3]").unwrap().1).1.inner,
-               Expr::Value(ConfigValue::List(vec![Expr::Identifier("ab3").with_location(4)]))
+fn test_hashmap_entry() {
+    assert_eq!(hashmap_entry("abc : [ab3]"),
+               Ok(("", HashMapEntry {
+                   key: raw_string("abc").with_location(11),
+                   value: Expr::Value(ConfigValue::List(vec![
+                       Expr::Identifier("ab3").with_location(4)
+                   ])).with_location(5),
+               }))
     );
 }
 
@@ -103,12 +127,12 @@ fn test_list() {
     ])));
 }
 
-fn object(input: &str) -> IResult<&str, HashMap<&str, ExprWithLocation>> {
+fn hashmap(input: &str) -> IResult<&str, Vec<HashMapEntry>> {
     delimited(
         pair(tag("{"), ml_space0),
         map(separated_list(
             alt((sep, ml_space1)),
-            object_field,
+            hashmap_entry,
         ), |x| x.into_iter().collect()),
         pair(alt((sep, ml_space0)), tag("}")),
     )(input)
@@ -117,21 +141,21 @@ fn object(input: &str) -> IResult<&str, HashMap<&str, ExprWithLocation>> {
 
 #[test]
 fn test_object() {
-    let mut hm = HashMap::new();
-    hm.insert("name", Expr::Value(ConfigValue::String(vec![ConfigString::Raw("earth")])).with_location(50));
-    hm.insert("colour", Expr::Identifier("blue").with_location(25));
-    hm.insert("li", Expr::Value(ConfigValue::List(vec![Expr::Identifier("ab3").with_location(5)])).with_location(6));
-    assert_eq!(object(r#"{
-        name: "earth",
-        colour: blue ,
-        li: [ab3]}"#), Ok(("", hm)));
-
-    let mut hm = HashMap::new();
-    hm.insert("name", Expr::Value(ConfigValue::String(vec![ConfigString::Raw("earth")])).with_location(47));
-    hm.insert("colour", Expr::Identifier("blue").with_location(23));
-    hm.insert("li", Expr::Value(ConfigValue::List(vec![Expr::Identifier("ab3").with_location(5)])).with_location(6));
-    assert_eq!(object(r#"{
+    assert_eq!(hashmap(r#"{
         name: "earth"
-        colour: blue
-        li: [ab3]}"#), Ok(("", hm)));
+        colour: blue ,
+        li: [ab3]}"#), Ok(("", vec![
+        HashMapEntry{
+            key: raw_string("name").with_location(55),
+            value: Expr::Value(ConfigValue::String(vec![ConfigString::Raw("earth")])).with_location(49),
+        },
+        HashMapEntry{
+            key: raw_string("colour").with_location(33),
+            value: Expr::Identifier("blue").with_location(25),
+        },
+        HashMapEntry{
+            key: raw_string("li").with_location(10),
+            value: Expr::Value(ConfigValue::List(vec![Expr::Identifier("ab3").with_location(5)])).with_location(6),
+        },
+    ])));
 }

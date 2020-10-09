@@ -16,7 +16,7 @@ pub enum NodeContent {
     Resolved(Value),
 
     List(Vec<CodeNode>),
-    HashMap(HashMap<String, CodeNode>),
+    HashMap(Vec<HmEntry>),
 
     FunctionDefinition(Rc<FunctionDefinition>),
 
@@ -28,6 +28,12 @@ pub enum NodeContent {
         // If arguments is None, it is just a variable, i.e. the value as it is.
         arguments: Option<Vec<CodeNode>>,
     },
+}
+
+#[derive(Debug)]
+pub struct HmEntry {
+    pub key: CodeNode,
+    pub value: CodeNode,
 }
 
 #[derive(Clone, Derivative)]
@@ -65,7 +71,7 @@ impl CodeNode {
                 .map(Rc::new)
                 .map(Value::List),
             NodeContent::HashMap(hm) => hm.iter()
-                .map(|(k, v)| v.resolve(ctx).map(|nv| (k.clone(), nv)))
+                .map(|HmEntry{key, value}| Ok((key.resolve(ctx)?.as_str()?.to_string(), value.resolve(ctx)?)))
                 .collect::<Result<HashMap<String, Value>, Error>>()
                 .map(Rc::new)
                 .map(Value::HashMap),

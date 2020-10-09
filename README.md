@@ -90,6 +90,7 @@ TODO
 * [JSON](https://www.json.org/json-en.html) - simple, great for machines, not very human friendly.
 * [YAML](https://yaml.org) - human friendly, supports entity references, error prone because of sensitivity to indentation.
 * [TOML](https://toml.io/en/) - human friendly, eliminates some weaknesses of YAML, big files gets less readable.
+* [HCL](https://github.com/hashicorp/hcl) - structured language, supports functions, does not support user defined functions.
 * [jsonnet](https://jsonnet.org) - supports functions and templating, has complex syntax, does not support functions as first level citizens.
 * [dhall](https://dhall-lang.org) - has support for types, has complex syntax with a lot of features.
 
