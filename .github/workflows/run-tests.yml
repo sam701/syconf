@@ -1,5 +1,9 @@
 name: run-tests
-on: [push]
+on:
+  push:
+    paths:
+      - 'syconf-lib/**'
+      - 'syconf-bin/**'
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
