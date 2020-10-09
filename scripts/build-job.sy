@@ -1,0 +1,24 @@
+(os) => {
+    "runs-on": "ubuntu-latest"
+    steps: [
+        {uses: "actions/checkout@v2"},
+        {
+            uses: "actions-rs/toolchain@v1",
+            with: {toolchain: "stable"}
+        },
+        {
+            run: "
+            cargo build --release
+            cd target/release
+            zip syconf-${os}.zip syconf
+            ".unindent().trim()
+        },
+        {
+            uses: "actions/upload-artifact@v2",
+            with: {
+                name: "${os}-bin"
+                path: "target/release/syconf-${os}.zip"
+            }
+        }
+    ]
+}
