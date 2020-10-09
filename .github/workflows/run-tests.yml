@@ -4,6 +4,7 @@ on:
     paths:
       - 'syconf-lib/**'
       - 'syconf-bin/**'
+      - 'Cargo.*'
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
