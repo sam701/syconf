@@ -13,8 +13,8 @@ Existing configuration languages either do not support templating and functions,
 or have complex grammars and multiple features that often go beyond the scope of a configuration language, 
 e.g. JsonNet, Dhall.
 
-*SyConf* is a simple configuration language that supports functions, templating, 
-and helps to keep complex configuration lean.
+*SyConf* is a simple configuration language that supports used defined functions, string interpolation, 
+and helps to keep complex configurations concise and maintainable.
 
 ## Features
 * Very simple grammar
