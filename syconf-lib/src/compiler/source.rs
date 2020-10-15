@@ -1,8 +1,8 @@
-use std::rc::Rc;
-use std::path::{PathBuf, Path};
 use crate::compiler::Error;
 use std::fs::File;
 use std::io::Read;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 pub struct Source(Rc<SourceRef>);

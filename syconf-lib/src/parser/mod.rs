@@ -1,8 +1,6 @@
-use std::path::PathBuf;
-use std::rc::Rc;
-
 use nom::branch::alt;
 use nom::combinator::{all_consuming, map};
+use nom::sequence::delimited;
 use nom::IResult;
 
 pub use block::{Assignment, BlockExpr};
@@ -17,26 +15,24 @@ pub use suffix_operators::*;
 pub use value::*;
 
 use crate::parser::block::block_body;
-use nom::sequence::delimited;
 
-mod value;
-mod math;
+mod block;
+mod comparison;
+mod conditional;
 mod expr;
 mod func;
 mod leaf;
-mod block;
-mod spaces;
-mod comparison;
-mod conditional;
 mod logical;
+mod math;
+mod spaces;
 mod suffix_operators;
+mod value;
 
 pub fn parse_unit(input: &str) -> IResult<&str, ExprWithLocation> {
     alt((
-        map(
-            all_consuming(block_body),
-            |x| Expr::Block(x).with_location(input.len()),
-        ),
-        delimited( ml_space0, expr, ml_space0)
+        map(all_consuming(block_body), |x| {
+            Expr::Block(x).with_location(input.len())
+        }),
+        delimited(ml_space0, expr, ml_space0),
     ))(input)
 }

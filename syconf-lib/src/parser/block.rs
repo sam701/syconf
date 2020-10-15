@@ -1,13 +1,10 @@
-use std::collections::HashMap;
-
 use nom::bytes::complete::*;
 use nom::combinator::{map, opt};
-use nom::IResult;
 use nom::multi::separated_nonempty_list;
 use nom::sequence::{delimited, pair, tuple};
+use nom::IResult;
 
 use super::*;
-use nom::error::ErrorKind;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Assignment<'a>(pub &'a str, pub ExprWithLocation<'a>);
@@ -15,21 +12,11 @@ pub struct Assignment<'a>(pub &'a str, pub ExprWithLocation<'a>);
 fn assignment(input: &str) -> IResult<&str, Assignment> {
     map(
         tuple((
-            pair(
-                tag("let"),
-                ml_space1,
-            ),
+            pair(tag("let"), ml_space1),
             identifier,
-            tuple((
-                ml_space0,
-                tag("="),
-                ml_space0,
-            )),
+            tuple((ml_space0, tag("="), ml_space0)),
             expr,
-            opt(pair(
-                ml_space0,
-                tag(";"),
-            ))
+            opt(pair(ml_space0, tag(";"))),
         )),
         |(_, ident, _, ex, _)| Assignment(ident, ex),
     )(input)
@@ -37,15 +24,21 @@ fn assignment(input: &str) -> IResult<&str, Assignment> {
 
 #[test]
 fn test_assignment() {
-    assert_eq!(assignment("let _ab3 =  44"), Ok(("", Assignment(
-        "_ab3",
-        Expr::Value(ConfigValue::Int(44)).with_location(2),
-    ))));
+    assert_eq!(
+        assignment("let _ab3 =  44"),
+        Ok((
+            "",
+            Assignment("_ab3", Expr::Value(ConfigValue::Int(44)).with_location(2),)
+        ))
+    );
 
-    assert_eq!(assignment("let _ab3 =  44 ;"), Ok(("", Assignment(
-        "_ab3",
-        Expr::Value(ConfigValue::Int(44)).with_location(4),
-    ))));
+    assert_eq!(
+        assignment("let _ab3 =  44 ;"),
+        Ok((
+            "",
+            Assignment("_ab3", Expr::Value(ConfigValue::Int(44)).with_location(4),)
+        ))
+    );
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -60,10 +53,7 @@ pub fn block_body(input: &str) -> IResult<&str, BlockExpr> {
             ml_space0,
             pair(
                 pair(
-                    separated_nonempty_list(
-                        ml_space1,
-                        assignment,
-                    ),
+                    separated_nonempty_list(ml_space1, assignment),
                     tuple((ml_space1, tag("in"), ml_space1)),
                 ),
                 expr,
@@ -79,12 +69,11 @@ pub fn block_body(input: &str) -> IResult<&str, BlockExpr> {
 
 #[test]
 fn failed_block() {
+    use nom::error::ErrorKind;
+
     let a = pair(
         pair(
-            separated_nonempty_list(
-                ml_space1,
-                assignment,
-            ),
+            separated_nonempty_list(ml_space1, assignment),
             tuple((ml_space1, tag("in"), ml_space1)),
         ),
         expr,
@@ -94,28 +83,36 @@ fn failed_block() {
 
 #[test]
 fn test_block_body() {
-    assert_eq!(block_body(r#"
+    assert_eq!(
+        block_body(
+            r#"
         let x = 33
         let b = x + 4
         in
         b
-    "#), Ok(("", BlockExpr {
-        local_assignments: vec![
-            Assignment("x", Expr::Value(ConfigValue::Int(33)).with_location(50)),
-            Assignment("b", Expr::Math(Box::new(MathOperation {
-                expr1: Expr::Identifier("x").with_location(31),
-                expr2: Expr::Value(ConfigValue::Int(4)).with_location(27),
-                op: MathOp::Add,
-            })).with_location(29)),
-        ],
-        expression: Box::new(Expr::Identifier("b").with_location(6)),
-    })));
+    "#
+        ),
+        Ok((
+            "",
+            BlockExpr {
+                local_assignments: vec![
+                    Assignment("x", Expr::Value(ConfigValue::Int(33)).with_location(50)),
+                    Assignment(
+                        "b",
+                        Expr::Math(Box::new(MathOperation {
+                            expr1: Expr::Identifier("x").with_location(31),
+                            expr2: Expr::Value(ConfigValue::Int(4)).with_location(27),
+                            op: MathOp::Add,
+                        }))
+                        .with_location(29)
+                    ),
+                ],
+                expression: Box::new(Expr::Identifier("b").with_location(6)),
+            }
+        ))
+    );
 }
 
 pub fn block_expr(input: &str) -> IResult<&str, BlockExpr> {
-    delimited(
-        tag("{"),
-        block_body,
-        tag("}"),
-    )(input)
+    delimited(tag("{"), block_body, tag("}"))(input)
 }

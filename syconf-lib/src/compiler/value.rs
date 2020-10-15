@@ -4,9 +4,8 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::compiler::context::Context;
-use crate::compiler::Error;
 use crate::compiler::node::{FunctionDefinition, NodeContent};
-use crate::parser::FuncDefinition;
+use crate::compiler::Error;
 
 use super::node::CodeNode;
 
@@ -31,7 +30,7 @@ pub struct TypeMismatch {
 
 impl Value {
     fn fail(&self, expected: &str) -> TypeMismatch {
-        TypeMismatch{
+        TypeMismatch {
             expects: expected.to_string(),
             was: format!("{:?}", self),
         }
@@ -87,7 +86,7 @@ impl PartialOrd for Value {
             (Value::Int(a), Value::Int(b)) => a.partial_cmp(b),
             (Value::String(a), Value::String(b)) => a.partial_cmp(b),
             (Value::Bool(a), Value::Bool(b)) => a.partial_cmp(b),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -96,7 +95,7 @@ impl PartialOrd for Value {
 pub struct Func(FuncInner);
 
 impl PartialEq for Func {
-    fn eq(&self, other: &Self) -> bool {
+    fn eq(&self, _: &Self) -> bool {
         false
     }
 }
@@ -106,7 +105,9 @@ impl fmt::Debug for Func {
         match &self.0 {
             FuncInner::BuiltInFunction(_) => f.write_str("<func>"),
             FuncInner::BuiltInMethod(_) => f.write_str("<func>"),
-            FuncInner::UserDefined(ud) => f.write_str(format!("user_func:{:?}", ud.definition.as_ref()).as_str()),
+            FuncInner::UserDefined(ud) => {
+                f.write_str(format!("user_func:{:?}", ud.definition.as_ref()).as_str())
+            }
         }
     }
 }
@@ -145,9 +146,18 @@ enum FuncInner {
 
 #[derive(Clone)]
 pub enum Method {
-    HashMap(Rc<HashMap<String, Value>>, &'static dyn Fn(&HashMap<String, Value>, &[Value]) -> Result<Value, Error>),
-    List(Rc<Vec<Value>>, &'static dyn Fn(&Vec<Value>, &[Value]) -> Result<Value, Error>),
-    String(Rc<String>, &'static dyn Fn(&String, &[Value]) -> Result<Value, Error>),
+    HashMap(
+        Rc<HashMap<String, Value>>,
+        &'static dyn Fn(&HashMap<String, Value>, &[Value]) -> Result<Value, Error>,
+    ),
+    List(
+        Rc<Vec<Value>>,
+        &'static dyn Fn(&[Value], &[Value]) -> Result<Value, Error>,
+    ),
+    String(
+        Rc<String>,
+        &'static dyn Fn(&str, &[Value]) -> Result<Value, Error>,
+    ),
 }
 
 impl Method {
@@ -159,7 +169,6 @@ impl Method {
         }
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct UserDefinedFunction {

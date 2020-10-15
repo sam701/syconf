@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
-use nom::{AsChar, IResult};
 use nom::bytes::complete::*;
 use nom::sequence::pair;
+use nom::{AsChar, IResult};
 
 use crate::parser::block::BlockExpr;
-use crate::parser::comparison::{Comparison, expr_comparison};
+use crate::parser::comparison::Comparison;
 use crate::parser::conditional::Conditional;
 
 use super::*;
@@ -49,7 +49,8 @@ pub fn expr(input: &str) -> IResult<&str, ExprWithLocation> {
 pub fn identifier(input: &str) -> IResult<&str, &str> {
     let (next_input, (a, b)) = pair(
         take_while1(|x: char| x.is_alpha() || x == '_'),
-        take_while(|x: char| x.is_alphanumeric() || x == '_'))(input)?;
+        take_while(|x: char| x.is_alphanumeric() || x == '_'),
+    )(input)?;
     Ok((next_input, &input[..a.len() + b.len()]))
 }
 

@@ -1,12 +1,12 @@
 pub use comparison::comparison;
-pub use math::math;
 pub use logical::*;
+pub use math::math;
 
 use crate::compiler::{Error, Value};
 
-mod math;
 mod comparison;
 mod logical;
+mod math;
 
 pub fn conditional(args: &[Value]) -> Result<Value, Error> {
     Ok(if args[0].as_bool()? {

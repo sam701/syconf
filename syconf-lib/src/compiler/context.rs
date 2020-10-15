@@ -2,9 +2,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::compiler::value::Func;
-
-use super::*;
 use super::node::CodeNode;
 
 #[derive(Clone, Debug)]
@@ -26,11 +23,11 @@ impl Context {
 
     pub fn get_value(&self, val: &str) -> Option<CodeNode> {
         let x = self.0.borrow();
-        x.bindings.get(val)
+        x.bindings
+            .get(val)
             .map(Clone::clone)
             .or_else(|| x.parent.as_ref().and_then(|p| p.get_value(val)))
     }
-
 
     pub fn new_child(&self) -> Self {
         Self(Rc::new(RefCell::new(ContextRef {
@@ -43,5 +40,3 @@ impl Context {
         self.0.borrow_mut().bindings.insert(key, value);
     }
 }
-
-

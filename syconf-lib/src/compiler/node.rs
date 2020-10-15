@@ -1,9 +1,8 @@
+use crate::compiler::value::Func;
 use crate::compiler::*;
 
 use super::context::Context;
-use super::methods;
-use super::value::{UserDefinedFunction, Value};
-use crate::compiler::value::Func;
+use super::value::Value;
 
 #[derive(Debug)]
 pub struct FunctionDefinition {
@@ -50,38 +49,49 @@ struct CodeNodeRef {
 
 impl CodeNode {
     pub fn new(content: NodeContent, location: Option<Location>) -> Self {
-        Self(Rc::new(CodeNodeRef {
-            content,
-            location,
-        }))
+        Self(Rc::new(CodeNodeRef { content, location }))
     }
 
     pub fn resolve(&self, ctx: &Context) -> Result<Value, Error> {
         match &self.0.content {
             NodeContent::Resolved(v) => Ok(v.clone()),
-            NodeContent::FunctionInputArgument(name) =>
-                ctx.get_value(name)
-                    .ok_or(anyhow!("Function argument '{}' is not bound", name))
-                    .and_then(|x| x.resolve(ctx)),
-            NodeContent::FunctionDefinition(fd) =>
-                Ok(Value::Func(Func::new_user_defined(ctx.clone(), fd.clone()))),
-            NodeContent::List(list) => list.iter()
+            NodeContent::FunctionInputArgument(name) => ctx
+                .get_value(name)
+                .ok_or_else(|| anyhow!("Function argument '{}' is not bound", name))
+                .and_then(|x| x.resolve(ctx)),
+            NodeContent::FunctionDefinition(fd) => {
+                Ok(Value::Func(Func::new_user_defined(ctx.clone(), fd.clone())))
+            }
+            NodeContent::List(list) => list
+                .iter()
                 .map(|x| x.resolve(ctx))
                 .collect::<Result<Vec<Value>, Error>>()
                 .map(Rc::new)
                 .map(Value::List),
-            NodeContent::HashMap(hm) => hm.iter()
-                .map(|HmEntry{key, value}| Ok((key.resolve(ctx)?.as_str()?.to_string(), value.resolve(ctx)?)))
+            NodeContent::HashMap(hm) => hm
+                .iter()
+                .map(|HmEntry { key, value }| {
+                    Ok((key.resolve(ctx)?.as_str()?.to_string(), value.resolve(ctx)?))
+                })
                 .collect::<Result<HashMap<String, Value>, Error>>()
                 .map(Rc::new)
                 .map(Value::HashMap),
-            NodeContent::FunctionCall { name: _, function, arguments } => {
-                let opt_args = arguments.as_ref().map(|x|
-                    x.iter().map(|en| en.resolve(ctx)).collect::<Result<Vec<Value>, Error>>())
-                    .map_or(Ok(None), |v| v.map(|x| Some(x)))?;
+            NodeContent::FunctionCall {
+                name: _,
+                function,
+                arguments,
+            } => {
+                let opt_args = arguments
+                    .as_ref()
+                    .map(|x| {
+                        x.iter()
+                            .map(|en| en.resolve(ctx))
+                            .collect::<Result<Vec<Value>, Error>>()
+                    })
+                    .map_or(Ok(None), |v| v.map(Some))?;
                 match (&function.resolve(ctx)?, &opt_args) {
                     (Value::Func(func), Some(args)) => func.call(args.as_slice()),
-                    (x, Some(_)) => Err(anyhow!("value is not a function")),
+                    (_, Some(_)) => Err(anyhow!("value is not a function")),
                     (x, None) => Ok(x.clone()),
                 }
             }
