@@ -19,7 +19,7 @@ pub enum Value {
     Int(i32),
     String(Rc<str>),
     HashMap(Rc<HashMap<String, Value>>),
-    List(Rc<Vec<Value>>),
+    List(Rc<[Value]>),
     #[serde(skip_deserializing)]
     Func(Func),
 }
@@ -60,7 +60,7 @@ impl Value {
             Err(self.fail("bool"))
         }
     }
-    pub fn as_list(&self) -> Result<&Vec<Value>, TypeMismatch> {
+    pub fn as_list(&self) -> Result<&[Value], TypeMismatch> {
         if let Value::List(x) = self {
             Ok(x)
         } else {
@@ -150,7 +150,7 @@ enum FuncInner {
 #[derive(Clone)]
 pub enum Method {
     HashMap(Rc<HashMap<String, Value>>, &'static HashmapMethod),
-    List(Rc<Vec<Value>>, &'static ListMethod),
+    List(Rc<[Value]>, &'static ListMethod),
     String(Rc<str>, &'static StringMethod),
 }
 

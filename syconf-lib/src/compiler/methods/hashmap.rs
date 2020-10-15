@@ -25,7 +25,7 @@ fn map(hm: &HashMap<String, Value>, args: &[Value]) -> Result<Value, Error> {
         let v = func.call(&[Value::String(k.clone().into()), v.clone()])?;
         match v {
             Value::List(list) => {
-                let ex = ValueExtractor::new(list.as_slice(), 2)?;
+                let ex = ValueExtractor::new(list.as_ref(), 2)?;
                 new_hm.insert(ex.extract_string(0)?.to_string(), list[1].clone());
             }
             _ => bail!("hashmap map function must return a list of 2 values"),

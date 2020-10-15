@@ -66,7 +66,7 @@ impl CodeNode {
                 .iter()
                 .map(|x| x.resolve(ctx))
                 .collect::<Result<Vec<Value>, Error>>()
-                .map(Rc::new)
+                .map(Into::into)
                 .map(Value::List),
             NodeContent::HashMap(hm) => hm
                 .iter()

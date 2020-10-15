@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::compiler::value_extraction::ValueExtractor;
 use crate::compiler::{Error, Value};
 
@@ -21,7 +19,7 @@ fn map(list: &[Value], args: &[Value]) -> Result<Value, Error> {
         .iter()
         .map(|x| func.call(&[x.clone()]))
         .collect::<Result<Vec<Value>, Error>>()?;
-    Ok(Value::List(Rc::new(mapped)))
+    Ok(Value::List(mapped.into()))
 }
 
 fn filter(list: &[Value], args: &[Value]) -> Result<Value, Error> {
@@ -35,7 +33,7 @@ fn filter(list: &[Value], args: &[Value]) -> Result<Value, Error> {
             filtered.push(val.clone());
         }
     }
-    Ok(Value::List(Rc::new(filtered)))
+    Ok(Value::List(filtered.into()))
 }
 
 fn len(list: &[Value], args: &[Value]) -> Result<Value, Error> {
@@ -48,5 +46,5 @@ fn append(list: &[Value], args: &[Value]) -> Result<Value, Error> {
     for x in args {
         a.push(x.clone());
     }
-    Ok(Value::List(Rc::new(a)))
+    Ok(Value::List(a.into()))
 }

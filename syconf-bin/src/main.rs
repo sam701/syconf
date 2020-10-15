@@ -63,7 +63,7 @@ fn main() {
         }
         file => syconf_lib::parse_file(file),
     }
-    .map(to_serializable);
+    .map(|x| to_serializable(&x));
 
     let val = match result {
         Ok(val) => val,
@@ -96,28 +96,18 @@ enum SerializableValue {
     Int(i32),
     String(Rc<str>),
     HashMap(BTreeMap<String, SerializableValue>),
-    List(Vec<SerializableValue>),
+    List(Rc<[SerializableValue]>),
 }
 
-fn to_serializable(v: Value) -> SerializableValue {
+fn to_serializable(v: &Value) -> SerializableValue {
     match v {
-        Value::Bool(x) => SerializableValue::Bool(x),
-        Value::Int(x) => SerializableValue::Int(x),
+        Value::Bool(x) => SerializableValue::Bool(*x),
+        Value::Int(x) => SerializableValue::Int(*x),
         Value::String(x) => SerializableValue::String(x.clone()),
-        Value::HashMap(x) => SerializableValue::HashMap(
-            Rc::try_unwrap(x)
-                .unwrap()
-                .into_iter()
-                .map(|(k, v)| (k, to_serializable(v)))
-                .collect(),
-        ),
-        Value::List(x) => SerializableValue::List(
-            Rc::try_unwrap(x)
-                .unwrap()
-                .into_iter()
-                .map(to_serializable)
-                .collect(),
-        ),
+        Value::HashMap(x) => {
+            SerializableValue::HashMap(x.iter().map(|(k, v)| (k.clone(), to_serializable(v))).collect())
+        }
+        Value::List(x) => SerializableValue::List(x.iter().map(to_serializable).collect()),
         Value::Func(_) => SerializableValue::String("<function>".into()),
     }
 }

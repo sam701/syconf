@@ -82,24 +82,19 @@ fn concat(args: &[Value]) -> Result<Value, Error> {
         !args.is_empty(),
         "Concat requires at least one argument as a list"
     );
-    let mut out = args[0].as_list()?.clone();
+    let mut out = args[0].as_list()?.to_vec();
     for x in &args[1..] {
-        let mut li = x.as_list()?.clone();
+        let mut li = x.as_list()?.to_vec();
         out.append(&mut li);
     }
-    Ok(Value::List(Rc::new(out)))
+    Ok(Value::List(out.into()))
 }
 
 #[test]
 fn func_concat() {
     assert_eq!(
-        crate::parse_string(r#"concat([1],[2,3],[4])"#).unwrap(),
-        Value::List(Rc::new(vec![
-            Value::Int(1),
-            Value::Int(2),
-            Value::Int(3),
-            Value::Int(4),
-        ]))
+        crate::parse_string(r#"concat([1],[2,3],[4]) == [1, 2, 3, 4]"#).unwrap(),
+        Value::Bool(true)
     );
 }
 
@@ -113,7 +108,7 @@ fn merge(args: &[Value]) -> Result<Value, Error> {
             args.len() == 1,
             "Merge expects either multiple hashmaps or a single list of hashmaps"
         );
-        list.as_slice()
+        list.as_ref()
     } else {
         args
     };
@@ -128,10 +123,7 @@ fn merge(args: &[Value]) -> Result<Value, Error> {
 #[test]
 fn func_merge() {
     let mut hm = std::collections::HashMap::new();
-    hm.insert(
-        "name".to_string(),
-        Value::String("alexei".into()),
-    );
+    hm.insert("name".to_string(), Value::String("alexei".into()));
     hm.insert("age".to_string(), Value::Int(40));
     assert_eq!(
         crate::parse_string(
