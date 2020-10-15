@@ -21,14 +21,6 @@ impl<'a> ValueExtractor<'a> {
         }
     }
 
-    pub fn extract_int(&self, ix: usize) -> Result<i32, Error> {
-        if let Value::Int(x) = &self.0[ix] {
-            Ok(*x)
-        } else {
-            Err(anyhow!("expects an int"))
-        }
-    }
-
     pub fn extract_func(&self, ix: usize) -> Result<Func, Error> {
         if let Value::Func(x) = &self.0[ix] {
             Ok(x.clone())

@@ -7,23 +7,11 @@ pub type ListMethod = dyn Fn(&[Value], &[Value]) -> Result<Value, Error>;
 
 pub fn method(name: &str) -> Option<&'static ListMethod> {
     Some(match name {
-        "get" => &get,
         "map" => &map,
         "filter" => &filter,
         "len" => &len,
         "append" => &append,
         _ => return None,
-    })
-}
-
-fn get(list: &[Value], args: &[Value]) -> Result<Value, Error> {
-    let key = ValueExtractor::new(args, 1)?.extract_int(0)?;
-    list.get(key as usize).map(Clone::clone).ok_or_else(|| {
-        anyhow!(
-            "list of length {} does not have index '{}'",
-            list.len(),
-            key
-        )
     })
 }
 
