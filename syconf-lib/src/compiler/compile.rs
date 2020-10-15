@@ -62,7 +62,7 @@ impl Compiler {
             SuffixOperator::DotField(id) => vec![
                 base,
                 CodeNode::new(
-                    NodeContent::Resolved(Value::String(Rc::new(id.to_string()))),
+                    NodeContent::Resolved(Value::String((*id).into())),
                     None,
                 ),
             ],
@@ -169,7 +169,7 @@ impl Compiler {
             .iter()
             .map(|x| match x {
                 ConfigString::Raw(s) => Ok(CodeNode::new(
-                    NodeContent::Resolved(Value::String(Rc::new(s.to_string()))),
+                    NodeContent::Resolved(Value::String((*s).into())),
                     None,
                 )),
                 ConfigString::Interpolated(a) => self.compile(ctx, a),

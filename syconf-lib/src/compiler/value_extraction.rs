@@ -15,7 +15,7 @@ impl<'a> ValueExtractor<'a> {
 
     pub fn extract_string(&self, ix: usize) -> Result<&str, Error> {
         if let Value::String(s) = &self.0[ix] {
-            Ok(s.as_str())
+            Ok(s)
         } else {
             Err(anyhow!("expects a string"))
         }

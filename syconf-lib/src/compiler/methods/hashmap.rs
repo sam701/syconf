@@ -22,7 +22,7 @@ fn map(hm: &HashMap<String, Value>, args: &[Value]) -> Result<Value, Error> {
 
     let mut new_hm = HashMap::new();
     for (k, v) in hm {
-        let v = func.call(&[Value::String(Rc::new(k.clone())), v.clone()])?;
+        let v = func.call(&[Value::String(k.clone().into()), v.clone()])?;
         match v {
             Value::List(list) => {
                 let ex = ValueExtractor::new(list.as_slice(), 2)?;
@@ -52,7 +52,7 @@ fn filter(hm: &HashMap<String, Value>, args: &[Value]) -> Result<Value, Error> {
     let mut filtered = HashMap::with_capacity(hm.len());
     for (ix, val) in hm {
         let out = func
-            .call(&[Value::String(Rc::new(ix.clone())), val.clone()])?
+            .call(&[Value::String(ix.clone().into()), val.clone()])?
             .as_bool()?;
         if out {
             filtered.insert(ix.clone(), val.clone());

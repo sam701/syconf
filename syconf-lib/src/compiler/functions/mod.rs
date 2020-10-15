@@ -29,7 +29,7 @@ fn read_file(args: &[Value]) -> Result<Value, Error> {
         File::open(file_name).map_err(|e| anyhow!("Cannot open file '{}': {}", file_name, e))?;
     f.read_to_string(&mut buf)
         .map_err(|e| anyhow!("Cannot read file '{}': {}", file_name, e))?;
-    Ok(Value::String(Rc::new(buf)))
+    Ok(Value::String(buf.into()))
 }
 
 fn getenv(args: &[Value]) -> Result<Value, Error> {
@@ -39,7 +39,7 @@ fn getenv(args: &[Value]) -> Result<Value, Error> {
     );
     let envname = args[0].as_str()?;
     std::env::var(envname)
-        .map(|x| Value::String(Rc::new(x)))
+        .map(|x| Value::String(x.into()))
         .or_else(|_| {
             if args.len() == 2 {
                 Ok(args[1].clone())
@@ -53,13 +53,13 @@ pub fn concat_strings(args: &[Value]) -> Result<Value, Error> {
     let mut out = String::new();
     for s in args {
         match s {
-            Value::String(s) => out.push_str(s.as_str()),
+            Value::String(s) => out.push_str(s),
             Value::Int(x) => out.push_str(x.to_string().as_str()),
             Value::Bool(x) => out.push_str(x.to_string().as_str()),
             _ => bail!("Cannot format a non-primitive type"),
         }
     }
-    Ok(Value::String(Rc::new(out)))
+    Ok(Value::String(out.into()))
 }
 
 #[test]
@@ -73,7 +73,7 @@ fn func_concat_strings() {
     "#
         )
         .unwrap(),
-        Value::String(Rc::new("Name: mike".to_string()))
+        Value::String("Name: mike".into())
     );
 }
 
@@ -130,7 +130,7 @@ fn func_merge() {
     let mut hm = std::collections::HashMap::new();
     hm.insert(
         "name".to_string(),
-        Value::String(Rc::new("alexei".to_string())),
+        Value::String("alexei".into()),
     );
     hm.insert("age".to_string(), Value::Int(40));
     assert_eq!(
@@ -175,7 +175,7 @@ fn fold(args: &[Value]) -> Result<Value, Error> {
         Value::HashMap(hm) => {
             let mut out = args[0].clone();
             for (ix, val) in hm.iter() {
-                let args = &[out.clone(), Value::String(Rc::new(ix.clone())), val.clone()];
+                let args = &[out.clone(), Value::String(ix.clone().into()), val.clone()];
                 out = func.call(args)?;
             }
             Ok(out)

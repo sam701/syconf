@@ -36,7 +36,7 @@ fn parse_toml(string: &str, args: &[Value]) -> Result<Value, Error> {
 
 fn trim(string: &str, args: &[Value]) -> Result<Value, Error> {
     ensure!(args.is_empty(), "'trim' does not take any arguments");
-    Ok(Value::String(Rc::new(string.trim().to_string())))
+    Ok(Value::String(string.trim().into()))
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn unindent(string: &str, args: &[Value]) -> Result<Value, Error> {
     prefixed_whitespaces.sort_unstable();
 
     let prefix_len = match prefixed_whitespaces.len() {
-        0 => return Ok(Value::String(Rc::new(string.to_string()))),
+        0 => return Ok(Value::String(string.into())),
         1 => prefixed_whitespaces[0].len(),
         _ => {
             let first: Vec<char> = prefixed_whitespaces[0].chars().collect();
@@ -91,7 +91,7 @@ fn unindent(string: &str, args: &[Value]) -> Result<Value, Error> {
         .collect::<Vec<&str>>()
         .join("\n");
 
-    Ok(Value::String(Rc::new(out)))
+    Ok(Value::String(out.into()))
 }
 
 #[test]
@@ -108,6 +108,6 @@ fn func_unindent() {
     "#
         )
         .unwrap(),
-        Value::String(Rc::new("\n\n    abc\ndef\n            ghk\n".to_string()))
+        Value::String("\n\n    abc\ndef\n            ghk\n".into())
     )
 }

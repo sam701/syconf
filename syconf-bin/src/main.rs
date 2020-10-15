@@ -94,7 +94,7 @@ fn main() {
 enum SerializableValue {
     Bool(bool),
     Int(i32),
-    String(String),
+    String(Rc<str>),
     HashMap(BTreeMap<String, SerializableValue>),
     List(Vec<SerializableValue>),
 }
@@ -103,7 +103,7 @@ fn to_serializable(v: Value) -> SerializableValue {
     match v {
         Value::Bool(x) => SerializableValue::Bool(x),
         Value::Int(x) => SerializableValue::Int(x),
-        Value::String(x) => SerializableValue::String(Rc::try_unwrap(x).unwrap()),
+        Value::String(x) => SerializableValue::String(x.clone()),
         Value::HashMap(x) => SerializableValue::HashMap(
             Rc::try_unwrap(x)
                 .unwrap()
@@ -118,6 +118,6 @@ fn to_serializable(v: Value) -> SerializableValue {
                 .map(to_serializable)
                 .collect(),
         ),
-        Value::Func(_) => SerializableValue::String("<function>".to_string()),
+        Value::Func(_) => SerializableValue::String("<function>".into()),
     }
 }

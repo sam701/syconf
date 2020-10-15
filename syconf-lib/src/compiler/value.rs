@@ -4,6 +4,9 @@ use std::fmt;
 use std::rc::Rc;
 
 use crate::compiler::context::Context;
+use crate::compiler::methods::hashmap::HashmapMethod;
+use crate::compiler::methods::list::ListMethod;
+use crate::compiler::methods::string::StringMethod;
 use crate::compiler::node::{FunctionDefinition, NodeContent};
 use crate::compiler::Error;
 
@@ -14,7 +17,7 @@ use super::node::CodeNode;
 pub enum Value {
     Bool(bool),
     Int(i32),
-    String(Rc<String>),
+    String(Rc<str>),
     HashMap(Rc<HashMap<String, Value>>),
     List(Rc<Vec<Value>>),
     #[serde(skip_deserializing)]
@@ -45,7 +48,7 @@ impl Value {
     }
     pub fn as_str(&self) -> Result<&str, TypeMismatch> {
         if let Value::String(x) = self {
-            Ok(x.as_str())
+            Ok(x)
         } else {
             Err(self.fail("string"))
         }
@@ -146,18 +149,9 @@ enum FuncInner {
 
 #[derive(Clone)]
 pub enum Method {
-    HashMap(
-        Rc<HashMap<String, Value>>,
-        &'static dyn Fn(&HashMap<String, Value>, &[Value]) -> Result<Value, Error>,
-    ),
-    List(
-        Rc<Vec<Value>>,
-        &'static dyn Fn(&[Value], &[Value]) -> Result<Value, Error>,
-    ),
-    String(
-        Rc<String>,
-        &'static dyn Fn(&str, &[Value]) -> Result<Value, Error>,
-    ),
+    HashMap(Rc<HashMap<String, Value>>, &'static HashmapMethod),
+    List(Rc<Vec<Value>>, &'static ListMethod),
+    String(Rc<str>, &'static StringMethod),
 }
 
 impl Method {
