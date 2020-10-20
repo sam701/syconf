@@ -22,11 +22,11 @@ fn read_file(args: &[Value]) -> Result<Value, Error> {
         args.len() == 1,
         "'read_file' expects a single string argument"
     );
-    let file_name = args[0].as_str()?;
+    let file_name = args[0].as_value_string()?;
 
     let mut buf = String::new();
-    let mut f =
-        File::open(file_name).map_err(|e| anyhow!("Cannot open file '{}': {}", file_name, e))?;
+    let mut f = File::open(file_name.as_ref())
+        .map_err(|e| anyhow!("Cannot open file '{}': {}", file_name, e))?;
     f.read_to_string(&mut buf)
         .map_err(|e| anyhow!("Cannot read file '{}': {}", file_name, e))?;
     Ok(Value::String(buf.into()))
@@ -37,8 +37,8 @@ fn getenv(args: &[Value]) -> Result<Value, Error> {
         !args.is_empty() && args.len() <= 2,
         "'getenv' expects a string argument with an optional default value"
     );
-    let envname = args[0].as_str()?;
-    std::env::var(envname)
+    let envname = args[0].as_value_string()?;
+    std::env::var(envname.as_ref())
         .map(|x| Value::String(x.into()))
         .or_else(|_| {
             if args.len() == 2 {
@@ -123,8 +123,8 @@ fn merge(args: &[Value]) -> Result<Value, Error> {
 #[test]
 fn func_merge() {
     let mut hm = std::collections::HashMap::new();
-    hm.insert("name".to_string(), Value::String("alexei".into()));
-    hm.insert("age".to_string(), Value::Int(40));
+    hm.insert("name".into(), Value::String("alexei".into()));
+    hm.insert("age".into(), Value::Int(40));
     assert_eq!(
         crate::parse_string(
             r#"merge(
@@ -167,7 +167,7 @@ fn fold(args: &[Value]) -> Result<Value, Error> {
         Value::HashMap(hm) => {
             let mut out = args[0].clone();
             for (ix, val) in hm.iter() {
-                let args = &[out.clone(), Value::String(ix.clone().into()), val.clone()];
+                let args = &[out.clone(), Value::String(ix.clone()), val.clone()];
                 out = func.call(args)?;
             }
             Ok(out)

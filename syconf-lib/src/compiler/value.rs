@@ -12,13 +12,15 @@ use crate::compiler::Error;
 
 use super::node::CodeNode;
 
+pub type ValueString = Rc<str>;
+
 #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
 #[serde(untagged)]
 pub enum Value {
     Bool(bool),
     Int(i32),
-    String(Rc<str>),
-    HashMap(Rc<HashMap<String, Value>>),
+    String(ValueString),
+    HashMap(Rc<HashMap<ValueString, Value>>),
     List(Rc<[Value]>),
     #[serde(skip_deserializing)]
     Func(Func),
@@ -46,7 +48,7 @@ impl Value {
             Err(self.fail("int"))
         }
     }
-    pub fn as_str(&self) -> Result<&str, TypeMismatch> {
+    pub fn as_value_string(&self) -> Result<&ValueString, TypeMismatch> {
         if let Value::String(x) = self {
             Ok(x)
         } else {
@@ -67,7 +69,7 @@ impl Value {
             Err(self.fail("list"))
         }
     }
-    pub fn as_hashmap(&self) -> Result<&HashMap<String, Value>, TypeMismatch> {
+    pub fn as_hashmap(&self) -> Result<&HashMap<ValueString, Value>, TypeMismatch> {
         if let Value::HashMap(x) = self {
             Ok(x)
         } else {
@@ -149,9 +151,9 @@ enum FuncInner {
 
 #[derive(Clone)]
 pub enum Method {
-    HashMap(Rc<HashMap<String, Value>>, &'static HashmapMethod),
+    HashMap(Rc<HashMap<ValueString, Value>>, &'static HashmapMethod),
     List(Rc<[Value]>, &'static ListMethod),
-    String(Rc<str>, &'static StringMethod),
+    String(ValueString, &'static StringMethod),
 }
 
 impl Method {

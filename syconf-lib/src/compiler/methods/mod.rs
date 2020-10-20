@@ -9,7 +9,7 @@ pub fn index(args: &[Value]) -> Result<Value, Error> {
     debug!(?args, "index");
     match &args[0] {
         Value::HashMap(hm) => {
-            let key = args[1].as_str()?;
+            let key = args[1].as_value_string()?;
             match hm.get(key) {
                 Some(v) => Ok(v.clone()),
                 None => hashmap::method(key)

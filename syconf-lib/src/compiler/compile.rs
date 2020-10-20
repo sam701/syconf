@@ -61,10 +61,7 @@ impl Compiler {
             }
             SuffixOperator::DotField(id) => vec![
                 base,
-                CodeNode::new(
-                    NodeContent::Resolved(Value::String((*id).into())),
-                    None,
-                ),
+                CodeNode::new(NodeContent::Resolved(Value::String((*id).into())), None),
             ],
             SuffixOperator::Index(ix) => vec![base, self.compile(ctx, ix)?],
         };

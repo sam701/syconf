@@ -1,4 +1,4 @@
-use crate::compiler::value::Func;
+use crate::compiler::value::{Func, ValueString};
 use crate::compiler::*;
 
 use super::context::Context;
@@ -71,9 +71,12 @@ impl CodeNode {
             NodeContent::HashMap(hm) => hm
                 .iter()
                 .map(|HmEntry { key, value }| {
-                    Ok((key.resolve(ctx)?.as_str()?.to_string(), value.resolve(ctx)?))
+                    Ok((
+                        key.resolve(ctx)?.as_value_string()?.clone(),
+                        value.resolve(ctx)?,
+                    ))
                 })
-                .collect::<Result<HashMap<String, Value>, Error>>()
+                .collect::<Result<HashMap<ValueString, Value>, Error>>()
                 .map(Rc::new)
                 .map(Value::HashMap),
             NodeContent::FunctionCall {

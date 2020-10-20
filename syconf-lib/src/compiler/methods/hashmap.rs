@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use crate::compiler::value::ValueString;
 use crate::compiler::value_extraction::ValueExtractor;
 use crate::compiler::{Error, Value};
 
-pub type HashmapMethod = dyn Fn(&HashMap<String, Value>, &[Value]) -> Result<Value, Error>;
+pub type HashmapMethod = dyn Fn(&HashMap<ValueString, Value>, &[Value]) -> Result<Value, Error>;
 
 pub fn method(name: &str) -> Option<&'static HashmapMethod> {
     Some(match name {
@@ -16,17 +17,17 @@ pub fn method(name: &str) -> Option<&'static HashmapMethod> {
     })
 }
 
-fn map(hm: &HashMap<String, Value>, args: &[Value]) -> Result<Value, Error> {
+fn map(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
     let extractor = ValueExtractor::new(args, 1)?;
     let func = extractor.extract_func(0)?;
 
     let mut new_hm = HashMap::new();
     for (k, v) in hm {
-        let v = func.call(&[Value::String(k.clone().into()), v.clone()])?;
+        let v = func.call(&[Value::String(k.clone()), v.clone()])?;
         match v {
             Value::List(list) => {
                 let ex = ValueExtractor::new(list.as_ref(), 2)?;
-                new_hm.insert(ex.extract_string(0)?.to_string(), list[1].clone());
+                new_hm.insert(ex.extract_string(0)?.clone(), list[1].clone());
             }
             _ => bail!("hashmap map function must return a list of 2 values"),
         }
@@ -47,12 +48,12 @@ fn func_map() {
     )
 }
 
-fn filter(hm: &HashMap<String, Value>, args: &[Value]) -> Result<Value, Error> {
+fn filter(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
     let func = ValueExtractor::new(args, 1)?.extract_func(0)?;
     let mut filtered = HashMap::with_capacity(hm.len());
     for (ix, val) in hm {
         let out = func
-            .call(&[Value::String(ix.clone().into()), val.clone()])?
+            .call(&[Value::String(ix.clone()), val.clone()])?
             .as_bool()?;
         if out {
             filtered.insert(ix.clone(), val.clone());
@@ -74,7 +75,7 @@ fn func_filter() {
     )
 }
 
-fn len(hm: &HashMap<String, Value>, args: &[Value]) -> Result<Value, Error> {
+fn len(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
     ensure!(args.is_empty(), "expects no arguments");
     Ok(Value::Int(hm.len() as i32))
 }
@@ -92,10 +93,10 @@ fn func_len() {
     )
 }
 
-fn insert(hm: &HashMap<String, Value>, args: &[Value]) -> Result<Value, Error> {
+fn insert(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
     ensure!(args.len() == 2, "expects 2 arguments");
     let mut out = hm.clone();
-    out.insert(args[0].as_str()?.to_string(), args[1].clone());
+    out.insert(args[0].as_value_string()?.clone(), args[1].clone());
     Ok(Value::HashMap(Rc::new(out)))
 }
 

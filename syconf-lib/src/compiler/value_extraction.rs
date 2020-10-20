@@ -1,5 +1,6 @@
 use super::value::Func;
 use super::{Error, Value};
+use crate::compiler::value::ValueString;
 
 pub struct ValueExtractor<'a>(&'a [Value]);
 
@@ -13,7 +14,7 @@ impl<'a> ValueExtractor<'a> {
         Ok(Self(args))
     }
 
-    pub fn extract_string(&self, ix: usize) -> Result<&str, Error> {
+    pub fn extract_string(&self, ix: usize) -> Result<&ValueString, Error> {
         if let Value::String(s) = &self.0[ix] {
             Ok(s)
         } else {
