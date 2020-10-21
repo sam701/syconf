@@ -1,6 +1,10 @@
 # SyConf
 *SyConf* is a simple configuration language that keeps your configuration lean.
 
+[![license](https://img.shields.io/github/license/sam701/syconf.svg)](https://github.com/sam701/syconf/blob/main/LICENSE)
+[![release](https://img.shields.io/github/release/sam701/syconf.svg)](https://github.com/sam701/syconf/releases/latest)
+![run-tests](https://github.com/sam701/syconf/workflows/run-tests/badge.svg)
+
 *[Documentation](./doc/lang.md)*
 
 ## Why?

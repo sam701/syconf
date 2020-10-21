@@ -17,25 +17,25 @@ pub fn method(method_name: &str) -> Option<&'static StringMethod> {
 }
 
 fn parse_json(string: &str, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.is_empty(), "'parse_json' does not take any arguments");
+    check!(args.is_empty(), "'parse_json' does not take any arguments");
     let x = serde_json::from_str(string).map_err(|e| anyhow!("cannot parse JSON: {}", e))?;
     Ok(Value::HashMap(Rc::new(x)))
 }
 
 fn parse_yaml(string: &str, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.is_empty(), "'parse_yaml' does not take any arguments");
+    check!(args.is_empty(), "'parse_yaml' does not take any arguments");
     let x = serde_yaml::from_str(string).map_err(|e| anyhow!("cannot parse YAML: {}", e))?;
     Ok(Value::HashMap(Rc::new(x)))
 }
 
 fn parse_toml(string: &str, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.is_empty(), "'parse_toml' does not take any arguments");
+    check!(args.is_empty(), "'parse_toml' does not take any arguments");
     let x = toml::de::from_str(string).map_err(|e| anyhow!("cannot parse TOML: {}", e))?;
     Ok(Value::HashMap(Rc::new(x)))
 }
 
 fn trim(string: &str, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.is_empty(), "'trim' does not take any arguments");
+    check!(args.is_empty(), "'trim' does not take any arguments");
     Ok(Value::String(string.trim().into()))
 }
 
@@ -55,7 +55,7 @@ fn trim_string() {
 }
 
 fn unindent(string: &str, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.is_empty(), "'unindent' does not take any arguments");
+    check!(args.is_empty(), "'unindent' does not take any arguments");
     let mut prefixed_whitespaces: Vec<&str> = string
         .lines()
         .filter(|x| !x.trim().is_empty())

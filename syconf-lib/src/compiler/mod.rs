@@ -6,7 +6,10 @@ pub use source::{Location, Source};
 pub use value::Value;
 
 use crate::parser::ExprWithLocation;
+pub use error::{Error, ErrorWithLocation};
 
+#[macro_use]
+mod error;
 mod compile;
 mod context;
 mod functions;
@@ -17,11 +20,6 @@ mod source;
 mod value;
 mod value_extraction;
 
-pub type Error = anyhow::Error;
-
-// TODO: add compiler tests
-
-// TODO: add location to the error messages
 pub fn compile(expr: &ExprWithLocation, source: Source) -> Result<Value, Error> {
     let node = compile::Compiler::new(source).compile(&Context::empty(), expr)?;
     debug!(?node, "compiled node");

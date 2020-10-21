@@ -24,13 +24,13 @@ fn op_div(oargs: &[Value]) -> Result<Value, Error> {
 }
 
 fn math_bi_op<F: Fn(i32, i32) -> i32>(f: F, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.len() == 2, "expects 2 arguments");
+    check!(args.len() == 2, "expects 2 arguments");
     match (&args[0], &args[1]) {
         (Value::Int(a), Value::Int(b)) => Ok(Value::Int(f(*a, *b))),
-        _ => bail!(
+        _ => Err(format!(
             "Expects INT and INT, but was {:?} and {:?}",
-            &args[0],
-            &args[1]
-        ),
+            &args[0], &args[1]
+        )
+        .into()),
     }
 }

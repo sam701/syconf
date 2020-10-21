@@ -4,7 +4,7 @@ use crate::compiler::context::Context;
 use crate::compiler::functions::FunctionSig;
 use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
 use crate::compiler::value::{Func, Value};
-use crate::compiler::{methods, operators, Error, Location, Source};
+use crate::compiler::{methods, operators, Error, ErrorWithLocation, Location, Source};
 use crate::parser::string::ConfigString;
 use crate::parser::*;
 use crate::parser::{Expr, ExprWithLocation};
@@ -29,7 +29,7 @@ impl Compiler {
         let cell = match &expr.inner {
             Expr::Value(val) => self.config_value(ctx, val)?,
             Expr::Block(block) => return self.block(ctx, block),
-            Expr::Identifier(id) => self.identifier(ctx, id)?,
+            Expr::Identifier(id) => self.identifier(ctx, id, expr.rest_len)?,
             Expr::FuncDefinition(fd) => self.func_definition(ctx, fd)?,
             Expr::Math(op) => self.math_op(ctx, op)?,
             Expr::Comparison(cmp) => self.comparison(ctx, cmp)?,
@@ -191,11 +191,14 @@ impl Compiler {
         self.compile(&ns, &block.expression)
     }
 
-    fn identifier(&self, ctx: &Context, id: &str) -> Result<NodeContent, Error> {
+    fn identifier(&self, ctx: &Context, id: &str, rest_len: usize) -> Result<NodeContent, Error> {
         let func_node = ctx
             .get_value(id)
             .or_else(|| super::functions::lookup(id).map(|func| builtin_func_node(func)))
-            .ok_or_else(|| anyhow!("Variable '{}' is not defined", id))?;
+            .ok_or_else(|| ErrorWithLocation {
+                location: Some(self.create_location(rest_len)),
+                message: format!("Variable '{}' is not defined", id),
+            })?;
         Ok(NodeContent::FunctionCall {
             name: id.to_string(),
             function: func_node,

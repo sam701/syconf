@@ -18,7 +18,7 @@ pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
 }
 
 fn read_file(args: &[Value]) -> Result<Value, Error> {
-    ensure!(
+    check!(
         args.len() == 1,
         "'read_file' expects a single string argument"
     );
@@ -33,7 +33,7 @@ fn read_file(args: &[Value]) -> Result<Value, Error> {
 }
 
 fn getenv(args: &[Value]) -> Result<Value, Error> {
-    ensure!(
+    check!(
         !args.is_empty() && args.len() <= 2,
         "'getenv' expects a string argument with an optional default value"
     );
@@ -44,7 +44,7 @@ fn getenv(args: &[Value]) -> Result<Value, Error> {
             if args.len() == 2 {
                 Ok(args[1].clone())
             } else {
-                Err(anyhow!("Environment variable '{}' is not set", envname))
+                Err(format!("Environment variable '{}' is not set", envname).into())
             }
         })
 }
@@ -56,7 +56,7 @@ pub fn concat_strings(args: &[Value]) -> Result<Value, Error> {
             Value::String(s) => out.push_str(s),
             Value::Int(x) => out.push_str(x.to_string().as_str()),
             Value::Bool(x) => out.push_str(x.to_string().as_str()),
-            _ => bail!("Cannot format a non-primitive type"),
+            _ => return Err("Cannot format a non-primitive type".into()),
         }
     }
     Ok(Value::String(out.into()))
@@ -78,7 +78,7 @@ fn func_concat_strings() {
 }
 
 fn concat(args: &[Value]) -> Result<Value, Error> {
-    ensure!(
+    check!(
         !args.is_empty(),
         "Concat requires at least one argument as a list"
     );
@@ -99,12 +99,12 @@ fn func_concat() {
 }
 
 fn merge(args: &[Value]) -> Result<Value, Error> {
-    ensure!(
+    check!(
         !args.is_empty(),
         "Merge requires at least one argument as a hashmap or a list of hashmaps"
     );
     let hm_list = if let Value::List(list) = &args[0] {
-        ensure!(
+        check!(
             args.len() == 1,
             "Merge expects either multiple hashmaps or a single list of hashmaps"
         );
@@ -150,7 +150,7 @@ fn func_merge() {
 }
 
 fn fold(args: &[Value]) -> Result<Value, Error> {
-    ensure!(
+    check!(
         args.len() == 3,
         "Fold requires 3 arguments (initial value, accumulation function, list or hashmap)"
     );
@@ -172,7 +172,7 @@ fn fold(args: &[Value]) -> Result<Value, Error> {
             }
             Ok(out)
         }
-        _ => bail!("3rd argument must be either a list or a hashmap"),
+        _ => Err("3rd argument must be either a list or a hashmap".into()),
     }
 }
 

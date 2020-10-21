@@ -6,7 +6,7 @@ pub struct ValueExtractor<'a>(&'a [Value]);
 
 impl<'a> ValueExtractor<'a> {
     pub fn new(args: &'a [Value], required_arg_count: usize) -> Result<Self, Error> {
-        ensure!(
+        check!(
             args.len() == required_arg_count,
             "expects {} arguments",
             required_arg_count
@@ -18,7 +18,7 @@ impl<'a> ValueExtractor<'a> {
         if let Value::String(s) = &self.0[ix] {
             Ok(s)
         } else {
-            Err(anyhow!("expects a string"))
+            Err("expects a string".into())
         }
     }
 
@@ -26,7 +26,7 @@ impl<'a> ValueExtractor<'a> {
         if let Value::Func(x) = &self.0[ix] {
             Ok(x.clone())
         } else {
-            Err(anyhow!("expects a function"))
+            Err("expects a function".into())
         }
     }
 }

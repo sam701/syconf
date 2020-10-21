@@ -37,7 +37,7 @@ fn filter(list: &[Value], args: &[Value]) -> Result<Value, Error> {
 }
 
 fn len(list: &[Value], args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.is_empty(), "expects no arguments");
+    check!(args.is_empty(), "expects no arguments");
     Ok(Value::Int(list.len() as i32))
 }
 

@@ -29,7 +29,7 @@ fn map(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error>
                 let ex = ValueExtractor::new(list.as_ref(), 2)?;
                 new_hm.insert(ex.extract_string(0)?.clone(), list[1].clone());
             }
-            _ => bail!("hashmap map function must return a list of 2 values"),
+            _ => return Err("hashmap map function must return a list of 2 values".into()),
         }
     }
     Ok(Value::HashMap(Rc::new(new_hm)))
@@ -76,7 +76,7 @@ fn func_filter() {
 }
 
 fn len(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.is_empty(), "expects no arguments");
+    check!(args.is_empty(), "expects no arguments");
     Ok(Value::Int(hm.len() as i32))
 }
 
@@ -94,7 +94,7 @@ fn func_len() {
 }
 
 fn insert(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
-    ensure!(args.len() == 2, "expects 2 arguments");
+    check!(args.len() == 2, "expects 2 arguments");
     let mut out = hm.clone();
     out.insert(args[0].as_value_string()?.clone(), args[1].clone());
     Ok(Value::HashMap(Rc::new(out)))

@@ -14,23 +14,23 @@ pub fn index(args: &[Value]) -> Result<Value, Error> {
                 Some(v) => Ok(v.clone()),
                 None => hashmap::method(key)
                     .map(|func| Value::Func(Func::new_method(Method::HashMap(hm.clone(), func))))
-                    .ok_or_else(|| anyhow!("no such field or method: {}", key)),
+                    .ok_or_else(|| format!("no such field or method: {}", key).into()),
             }
         }
         Value::List(list) => match &args[1] {
             Value::Int(key) => list
                 .get(*key as usize)
                 .map(Clone::clone)
-                .ok_or_else(|| anyhow!("No such element")),
+                .ok_or_else(|| "No such element".into()),
             Value::String(key) => list::method(key)
                 .map(|func| Value::Func(Func::new_method(Method::List(list.clone(), func))))
-                .ok_or_else(|| anyhow!("no such field or method: {}", key)),
+                .ok_or_else(|| format!("no such field or method: {}", key).into()),
             _ => unreachable!(),
         },
         Value::String(string) => match &args[1] {
             Value::String(method) => string::method(method)
                 .map(|func| Value::Func(Func::new_method(Method::String(string.clone(), func))))
-                .ok_or_else(|| anyhow!("no such field or method: {}", string)),
+                .ok_or_else(|| format!("no such field or method: {}", string).into()),
             _ => unreachable!(),
         },
         _ => unreachable!(),

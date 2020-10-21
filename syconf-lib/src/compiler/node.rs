@@ -52,12 +52,12 @@ impl CodeNode {
         Self(Rc::new(CodeNodeRef { content, location }))
     }
 
-    pub fn resolve(&self, ctx: &Context) -> Result<Value, Error> {
+    pub fn resolve(&self, ctx: &Context) -> Result<Value, ErrorWithLocation> {
         match &self.0.content {
             NodeContent::Resolved(v) => Ok(v.clone()),
             NodeContent::FunctionInputArgument(name) => ctx
                 .get_value(name)
-                .ok_or_else(|| anyhow!("Function argument '{}' is not bound", name))
+                .ok_or_else(|| self.err(format!("Function argument '{}' is not bound", name)))
                 .and_then(|x| x.resolve(ctx)),
             NodeContent::FunctionDefinition(fd) => {
                 Ok(Value::Func(Func::new_user_defined(ctx.clone(), fd.clone())))
@@ -65,18 +65,21 @@ impl CodeNode {
             NodeContent::List(list) => list
                 .iter()
                 .map(|x| x.resolve(ctx))
-                .collect::<Result<Vec<Value>, Error>>()
+                .collect::<Result<Vec<Value>, ErrorWithLocation>>()
                 .map(Into::into)
                 .map(Value::List),
             NodeContent::HashMap(hm) => hm
                 .iter()
                 .map(|HmEntry { key, value }| {
                     Ok((
-                        key.resolve(ctx)?.as_value_string()?.clone(),
+                        key.resolve(ctx)?
+                            .as_value_string()
+                            .map_err(|e| self.err(e.to_string()))?
+                            .clone(),
                         value.resolve(ctx)?,
                     ))
                 })
-                .collect::<Result<HashMap<ValueString, Value>, Error>>()
+                .collect::<Result<HashMap<ValueString, Value>, ErrorWithLocation>>()
                 .map(Rc::new)
                 .map(Value::HashMap),
             NodeContent::FunctionCall {
@@ -84,20 +87,36 @@ impl CodeNode {
                 function,
                 arguments,
             } => {
-                let opt_args = arguments
+                let opt_args: Option<Vec<Value>> = arguments
                     .as_ref()
                     .map(|x| {
                         x.iter()
                             .map(|en| en.resolve(ctx))
-                            .collect::<Result<Vec<Value>, Error>>()
+                            .collect::<Result<Vec<Value>, ErrorWithLocation>>()
                     })
                     .map_or(Ok(None), |v| v.map(Some))?;
                 match (&function.resolve(ctx)?, &opt_args) {
-                    (Value::Func(func), Some(args)) => func.call(args.as_slice()),
-                    (_, Some(_)) => Err(anyhow!("value is not a function")),
+                    (Value::Func(func), Some(args)) => {
+                        func.call(args.as_slice()).map_err(|e| self.add_location(e))
+                    }
+                    (_, Some(_)) => Err(self.err("value is not a function".to_string())),
                     (x, None) => Ok(x.clone()),
                 }
             }
+        }
+    }
+
+    fn add_location(&self, err: Error) -> ErrorWithLocation {
+        ErrorWithLocation {
+            message: err.to_string(),
+            location: self.0.location.clone(),
+        }
+    }
+
+    fn err(&self, message: String) -> ErrorWithLocation {
+        ErrorWithLocation {
+            message,
+            location: self.0.location.clone(),
         }
     }
 }

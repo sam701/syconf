@@ -8,7 +8,7 @@ use crate::compiler::methods::hashmap::HashmapMethod;
 use crate::compiler::methods::list::ListMethod;
 use crate::compiler::methods::string::StringMethod;
 use crate::compiler::node::{FunctionDefinition, NodeContent};
-use crate::compiler::Error;
+use crate::compiler::{Error, ErrorWithLocation};
 
 use super::node::CodeNode;
 
@@ -133,7 +133,7 @@ impl Func {
         }))
     }
 
-    pub fn call(&self, args: &[Value]) -> Result<Value, Error> {
+    pub fn call(&self, args: &[Value]) -> Result<Value, ErrorWithLocation> {
         match &self.0 {
             FuncInner::BuiltInFunction(func) => func(args),
             FuncInner::BuiltInMethod(method) => method.call(args),
@@ -173,7 +173,7 @@ pub struct UserDefinedFunction {
 }
 
 impl UserDefinedFunction {
-    fn call(&self, args: &[Value]) -> Result<Value, Error> {
+    fn call(&self, args: &[Value]) -> Result<Value, ErrorWithLocation> {
         debug!(arg_names=?self.definition.argument_names, input=?args, "applying user defined function");
         debug!(node=?self.definition.node, "user defined");
         let nctx = self.context.new_child();
