@@ -169,7 +169,7 @@ impl Compiler {
                     NodeContent::Resolved(Value::String((*s).into())),
                     None,
                 )),
-                ConfigString::Interpolated(a) => dbg!(self.compile(ctx, dbg!(a))),
+                ConfigString::Interpolated(a) => self.compile(ctx, a),
             })
             .collect::<Result<Vec<CodeNode>, Error>>()?;
         Ok(NodeContent::FunctionCall {
