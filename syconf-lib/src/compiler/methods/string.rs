@@ -1,7 +1,7 @@
+use std::cmp::min;
 use std::rc::Rc;
 
 use crate::compiler::{Error, Value};
-use std::cmp::min;
 
 pub type StringMethod = dyn Fn(&str, &[Value]) -> Result<Value, Error>;
 
@@ -49,10 +49,63 @@ fn trim_string() {
             ".trim() == "abc"
     "#
         )
-        .unwrap(),
+            .unwrap(),
         Value::Bool(true)
     )
 }
+
+// pub fn split<'a, P>(&'a self, pat: P) -> Split<'a, P
+
+fn split<'a>(string: &'a str, args: &[Value]) -> Vec<&'a str> {
+    println!("{} split by {:?}", string, args);
+    // ensure!(args.len() == 1, "'split' takes exactly one argument");
+    let x = args[0].clone();
+    let mut y = String::new();
+    if let Value::String(val) = x {
+        // y = (*(val.to_string())).parse()?;
+        y = (*val).to_string();
+
+    }
+    println!("{} y value", y);
+
+    "dummy,test".split(&y).collect()
+
+    // Ok(string.split(&y).collect())
+
+}
+
+fn dummy() -> String {
+    println!("dummy test");
+    String::from("dummy test")
+}
+
+
+#[test]
+fn split_string() {
+    assert_eq!(dummy(), "dummy test");
+    assert_eq!(split("aa,bb,cc", &[Value::String(",".into())]), ["dumm ankur"].to_vec());
+    // assert_eq!(
+    //     crate::parse_string(
+    //         r#""aa,bb,cc".split(",") == ["aa", "bb", "cc"]"#)
+    //         .unwrap(),
+    //     Value::Bool(true)
+    // )
+}
+
+
+//
+// #[cfg(test)]
+// mod tests {
+//
+//     use crate::parse_string;
+//     use super::split;
+// #[test]
+// fn test_split(){
+//     assert_eq!( parse_string("aa,bb,cc".spli))
+// }
+//
+// }
+//
 
 fn unindent(string: &str, args: &[Value]) -> Result<Value, Error> {
     check!(args.is_empty(), "'unindent' does not take any arguments");
@@ -107,7 +160,7 @@ fn func_unindent() {
         ".unindent()
     "#
         )
-        .unwrap(),
+            .unwrap(),
         Value::String("\n\n    abc\ndef\n            ghk\n".into())
     )
 }
