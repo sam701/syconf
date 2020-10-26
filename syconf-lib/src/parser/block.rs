@@ -2,7 +2,7 @@ use nom::bytes::complete::*;
 use nom::combinator::{map, opt};
 use nom::multi::separated_nonempty_list;
 use nom::sequence::{delimited, pair, tuple};
-use nom::{IResult, InputLength};
+use nom::IResult;
 
 use super::*;
 

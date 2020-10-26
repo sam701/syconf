@@ -4,7 +4,7 @@ use nom::combinator::{all_consuming, map};
 use nom::error::ErrorKind;
 use nom::multi::many1;
 use nom::sequence::{delimited, pair};
-use nom::{FindSubstring, IResult, Needed, InputTake, Slice};
+use nom::{FindSubstring, IResult, InputTake, Needed, Slice};
 
 use crate::parser::expr::expr;
 use crate::parser::{ml_space0, ExprWithLocation, Span};
@@ -33,7 +33,7 @@ pub fn parse(input: Span) -> IResult<Span, Vec<ConfigString>> {
                     all_consuming(many1(interpolated_string))(input.slice(..x))?.1
                 },
             ))
-        },
+        }
         None => Err(nom::Err::Incomplete(Needed::Unknown)),
     }
 }
@@ -63,11 +63,10 @@ fn interpolated_string(input: Span) -> IResult<Span, ConfigString> {
             delimited(ml_space0, expr, pair(ml_space0, tag("}"))),
             ConfigString::Interpolated,
         )(input.take_split(2).0),
-        Some(x) =>{
-            let (rest, res) = input.take_split(x);
+        Some(x) => {
+            let (rest, _res) = input.take_split(x);
             Ok((rest, ConfigString::Raw(&input.fragment()[..x])))
-        },
+        }
         None => Ok((Span::new(""), ConfigString::Raw(input.fragment()))),
     }
 }
-

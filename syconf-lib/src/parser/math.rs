@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::*;
-use nom::combinator::{map, opt, rest_len};
+use nom::combinator::{map, opt};
 use nom::sequence::{delimited, pair, tuple};
 use nom::IResult;
 
@@ -29,9 +29,19 @@ pub fn expr_sum(input: Span) -> IResult<Span, ExprWithLocation> {
             opt(pair(
                 delimited(
                     ml_space0,
-                    map(pair(position, alt((tag("+"), tag("-")))), |(rem, x): (Span, Span)| {
-                        (rem, if x.fragment() == &"+" { MathOp::Add } else { MathOp::Sub })
-                    }),
+                    map(
+                        pair(position, alt((tag("+"), tag("-")))),
+                        |(rem, x): (Span, Span)| {
+                            (
+                                rem,
+                                if x.fragment() == &"+" {
+                                    MathOp::Add
+                                } else {
+                                    MathOp::Sub
+                                },
+                            )
+                        },
+                    ),
                     ml_space0,
                 ),
                 expr_sum,
@@ -49,9 +59,19 @@ pub fn expr_prod(input: Span) -> IResult<Span, ExprWithLocation> {
             opt(pair(
                 delimited(
                     ml_space0,
-                    map(pair(position, alt((tag("*"), tag("/")))), |(rem, x): (Span, Span)| {
-                        (rem, if x.fragment() == &"*" { MathOp::Mul } else { MathOp::Div })
-                    }),
+                    map(
+                        pair(position, alt((tag("*"), tag("/")))),
+                        |(rem, x): (Span, Span)| {
+                            (
+                                rem,
+                                if x.fragment() == &"*" {
+                                    MathOp::Mul
+                                } else {
+                                    MathOp::Div
+                                },
+                            )
+                        },
+                    ),
                     ml_space0,
                 ),
                 expr_prod,
@@ -67,9 +87,8 @@ fn map_math_op<'a>(
 ) -> ExprWithLocation<'a> {
     match x {
         Some(((position, op), expr2)) => {
-            Expr::Math(Box::new(MathOperation { expr1, expr2, op })).from_position(position)
+            Expr::Math(Box::new(MathOperation { expr1, expr2, op })).with_location(position)
         }
         None => expr1,
     }
 }
-

@@ -9,18 +9,11 @@ use crate::parser::comparison::Comparison;
 use crate::parser::conditional::Conditional;
 
 use super::*;
-use crate::parser::string::ConfigString;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct ExprWithLocation<'a> {
     pub inner: Expr<'a>,
     pub location: Span<'a>,
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum ExprLocation {
-    Position(usize),
-    Rest(usize),
 }
 
 // TODO: add special characters in strings, i.e. \n, \t
@@ -40,7 +33,7 @@ pub enum Expr<'a> {
 }
 
 impl<'a> Expr<'a> {
-    pub fn from_position(self, location: Span<'a>) -> ExprWithLocation<'a> {
+    pub fn with_location(self, location: Span<'a>) -> ExprWithLocation<'a> {
         ExprWithLocation {
             inner: self,
             location,
@@ -57,5 +50,8 @@ pub fn identifier(input: Span) -> IResult<Span, &str> {
         take_while1(|x: char| x.is_alpha() || x == '_'),
         take_while(|x: char| x.is_alphanumeric() || x == '_'),
     )(input)?;
-    Ok((next_input, input.take_split(a.input_len() + b.input_len()).1.fragment()))
+    Ok((
+        next_input,
+        input.take_split(a.input_len() + b.input_len()).1.fragment(),
+    ))
 }

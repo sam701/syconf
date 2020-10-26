@@ -1,7 +1,5 @@
 use std::rc::Rc;
 
-use nom::Offset;
-
 use crate::compiler::context::Context;
 use crate::compiler::functions::FunctionSig;
 use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};

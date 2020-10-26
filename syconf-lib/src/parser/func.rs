@@ -33,4 +33,3 @@ pub fn func_definition(input: Span) -> IResult<Span, FuncDefinition> {
         },
     )(input)
 }
-

@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::combinator::{map, opt, rest_len};
+use nom::combinator::{map, opt};
 use nom::multi::many0;
 use nom::sequence::{delimited, pair, preceded, terminated, tuple};
 use nom::IResult;
@@ -35,7 +35,7 @@ pub fn expr_suffix(input: Span) -> IResult<Span, ExprWithLocation> {
                     base: a,
                     operator: op,
                 }))
-                .from_position(rl)
+                .with_location(rl)
             })
         },
     )(input)

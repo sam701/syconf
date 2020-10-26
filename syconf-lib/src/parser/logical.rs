@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::combinator::{map, opt, rest_len};
+use nom::combinator::{map, opt};
 use nom::sequence::{pair, tuple};
 use nom::IResult;
 
@@ -37,7 +37,7 @@ fn binary(input: Span) -> IResult<Span, ExprWithLocation> {
                 } else {
                     Logical::Or
                 };
-                Expr::Logical(Box::new(func(expr1, expr2))).from_position(pos)
+                Expr::Logical(Box::new(func(expr1, expr2))).with_location(pos)
             }
             None => expr1,
         },
@@ -47,7 +47,6 @@ fn binary(input: Span) -> IResult<Span, ExprWithLocation> {
 fn negation(input: Span) -> IResult<Span, ExprWithLocation> {
     map(
         pair(pair(position, pair(tag("not"), ml_space1)), expr_comparison),
-        |((pos, _), ex)| Expr::Logical(Box::new(Logical::Not(ex))).from_position(pos),
+        |((pos, _), ex)| Expr::Logical(Box::new(Logical::Not(ex))).with_location(pos),
     )(input)
 }
-

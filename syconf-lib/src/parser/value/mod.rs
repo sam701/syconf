@@ -4,7 +4,7 @@ use nom::character::complete::*;
 use nom::combinator::{map, map_res};
 use nom::multi::separated_list;
 use nom::sequence::{delimited, pair, separated_pair, tuple};
-use nom::{IResult, InputTake, InputLength};
+use nom::{IResult, InputLength, InputTake};
 
 use string::ConfigString;
 
@@ -31,7 +31,9 @@ pub struct HashMapEntry<'a> {
 pub fn config_value(input: Span) -> IResult<Span, ConfigValue> {
     alt((
         map(boolean, ConfigValue::Bool),
-        map_res(digit1, |s: Span| s.fragment().parse::<i32>().map(ConfigValue::Int)),
+        map_res(digit1, |s: Span| {
+            s.fragment().parse::<i32>().map(ConfigValue::Int)
+        }),
         map(hashmap, ConfigValue::HashMap),
         map(list, ConfigValue::List),
         map(string::parse, ConfigValue::String),
@@ -39,7 +41,9 @@ pub fn config_value(input: Span) -> IResult<Span, ConfigValue> {
 }
 
 fn boolean(input: Span) -> IResult<Span, bool> {
-    map(alt((tag("true"), tag("false"))), |x: Span| x.fragment() == &"true")(input)
+    map(alt((tag("true"), tag("false"))), |x: Span| {
+        x.fragment() == &"true"
+    })(input)
 }
 
 fn hashmap_entry(input: Span) -> IResult<Span, HashMapEntry> {
@@ -47,7 +51,7 @@ fn hashmap_entry(input: Span) -> IResult<Span, HashMapEntry> {
         separated_pair(
             alt((
                 map(pair(position, identifier), |(rl, id)| {
-                    raw_string(id).from_position(rl)
+                    raw_string(id).with_location(rl)
                 }),
                 expr,
             )),
@@ -63,11 +67,16 @@ fn raw_string(s: &str) -> Expr {
 }
 
 fn sep(input: Span) -> IResult<Span, &str> {
-    let orig = input.clone();
+    let orig = input;
     let (input, _) = ml_space0(input)?;
     let (input, _) = tag(",")(input)?;
     let (input, _) = ml_space0(input)?;
-    Ok((input, orig.take_split(orig.input_len() - input.input_len()).1.fragment()))
+    Ok((
+        input,
+        orig.take_split(orig.input_len() - input.input_len())
+            .1
+            .fragment(),
+    ))
 }
 
 fn list(input: Span) -> IResult<Span, Vec<ExprWithLocation>> {

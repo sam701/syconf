@@ -106,13 +106,6 @@ impl CodeNode {
         }
     }
 
-    fn add_location(&self, err: Error) -> ErrorWithLocation {
-        ErrorWithLocation {
-            message: err.to_string(),
-            location: self.0.location.clone(),
-        }
-    }
-
     fn err(&self, message: String) -> ErrorWithLocation {
         ErrorWithLocation {
             message,
