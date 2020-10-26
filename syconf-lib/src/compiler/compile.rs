@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use nom::Offset;
+
 use crate::compiler::context::Context;
 use crate::compiler::functions::FunctionSig;
 use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
@@ -18,10 +20,10 @@ impl Compiler {
         Self { source }
     }
 
-    fn create_location(&self, rest_len: usize) -> Location {
+    fn create_location(&self, location: &Span) -> Location {
         Location {
             source: self.source.clone(),
-            position: self.source.as_str().len() - rest_len,
+            position: location.location_offset(),
         }
     }
 
@@ -29,7 +31,7 @@ impl Compiler {
         let cell = match &expr.inner {
             Expr::Value(val) => self.config_value(ctx, val)?,
             Expr::Block(block) => return self.block(ctx, block),
-            Expr::Identifier(id) => self.identifier(ctx, id, expr.rest_len)?,
+            Expr::Identifier(id) => self.identifier(ctx, id, &expr.location)?,
             Expr::FuncDefinition(fd) => self.func_definition(ctx, fd)?,
             Expr::Math(op) => self.math_op(ctx, op)?,
             Expr::Comparison(cmp) => self.comparison(ctx, cmp)?,
@@ -40,7 +42,7 @@ impl Compiler {
         };
         Ok(CodeNode::new(
             cell,
-            Some(self.create_location(expr.rest_len)),
+            Some(self.create_location(&expr.location)),
         ))
     }
 
@@ -169,7 +171,7 @@ impl Compiler {
                     NodeContent::Resolved(Value::String((*s).into())),
                     None,
                 )),
-                ConfigString::Interpolated(a) => self.compile(ctx, a),
+                ConfigString::Interpolated(a) => dbg!(self.compile(ctx, dbg!(a))),
             })
             .collect::<Result<Vec<CodeNode>, Error>>()?;
         Ok(NodeContent::FunctionCall {
@@ -191,12 +193,12 @@ impl Compiler {
         self.compile(&ns, &block.expression)
     }
 
-    fn identifier(&self, ctx: &Context, id: &str, rest_len: usize) -> Result<NodeContent, Error> {
+    fn identifier(&self, ctx: &Context, id: &str, loc: &Span) -> Result<NodeContent, Error> {
         let func_node = ctx
             .get_value(id)
             .or_else(|| super::functions::lookup(id).map(|func| builtin_func_node(func)))
             .ok_or_else(|| ErrorWithLocation {
-                location: Some(self.create_location(rest_len)),
+                location: Some(self.create_location(loc)),
                 message: format!("Variable '{}' is not defined", id),
             })?;
         Ok(NodeContent::FunctionCall {
@@ -234,7 +236,8 @@ impl Compiler {
                 .join(file_name)
                 .as_path(),
         )?;
-        let (_, expr) = parse_unit(src.as_str()).map_err(|e| anyhow!("Cannot parse {}", e))?;
+        let (_, expr) =
+            parse_unit(Span::new(src.as_str())).map_err(|e| anyhow!("Cannot parse {}", e))?;
         Compiler::new(src.clone()).compile(&Context::empty(), &expr)
     }
 }

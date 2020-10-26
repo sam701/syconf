@@ -97,7 +97,7 @@ impl CodeNode {
                     .map_or(Ok(None), |v| v.map(Some))?;
                 match (&function.resolve(ctx)?, &opt_args) {
                     (Value::Func(func), Some(args)) => {
-                        func.call(args.as_slice()).map_err(|e| self.add_location(e))
+                        func.call(args.as_slice()) //.map_err(|e| self.add_location(e))
                     }
                     (_, Some(_)) => Err(self.err("value is not a function".to_string())),
                     (x, None) => Ok(x.clone()),

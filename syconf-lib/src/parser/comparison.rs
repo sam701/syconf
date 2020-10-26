@@ -4,7 +4,8 @@ use nom::combinator::{map, opt, rest_len};
 use nom::sequence::{pair, tuple};
 use nom::IResult;
 
-use crate::parser::{expr_sum, ml_space0, Expr, ExprWithLocation};
+use crate::parser::{expr_sum, ml_space0, Expr, ExprWithLocation, Span};
+use nom_locate::position;
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Comparison<'a> {
@@ -23,7 +24,7 @@ pub enum ComparisonOperator {
     GreaterOrEqual,
 }
 
-pub fn expr_comparison(input: &str) -> IResult<&str, ExprWithLocation> {
+pub fn expr_comparison(input: Span) -> IResult<Span, ExprWithLocation> {
     map(
         tuple((
             expr_sum,
@@ -31,7 +32,7 @@ pub fn expr_comparison(input: &str) -> IResult<&str, ExprWithLocation> {
                 map(
                     tuple((
                         ml_space0,
-                        rest_len,
+                        position,
                         alt((
                             map(tag("=="), |_| ComparisonOperator::Equal),
                             map(tag("!="), |_| ComparisonOperator::NotEqual),
@@ -48,30 +49,13 @@ pub fn expr_comparison(input: &str) -> IResult<&str, ExprWithLocation> {
             )),
         )),
         |(expr1, opt)| match opt {
-            Some(((rest_len, operator), expr2)) => Expr::Comparison(Box::new(Comparison {
+            Some(((pos, operator), expr2)) => Expr::Comparison(Box::new(Comparison {
                 expr1,
                 expr2,
                 operator,
             }))
-            .with_location(rest_len),
+            .from_position(pos),
             None => expr1,
         },
     )(input)
-}
-
-#[test]
-fn test_expr_comparison() {
-    use crate::parser::ConfigValue;
-    assert_eq!(
-        expr_comparison("3 > 2"),
-        Ok((
-            "",
-            Expr::Comparison(Box::new(Comparison {
-                expr1: Expr::Value(ConfigValue::Int(3)).with_location(5),
-                expr2: Expr::Value(ConfigValue::Int(2)).with_location(1),
-                operator: ComparisonOperator::Greater,
-            }))
-            .with_location(3)
-        ))
-    )
 }

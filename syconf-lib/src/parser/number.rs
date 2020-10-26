@@ -12,7 +12,7 @@ pub enum Number {
     Float(f64),
 }
 
-pub fn number(input: &str) -> IResult<&str, Number> {
+pub fn number(input: Input) -> IResult<Input, Number> {
     map(
         tuple((
             opt(alt((tag("-"), tag("+")))),

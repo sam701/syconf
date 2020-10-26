@@ -12,7 +12,7 @@ pub struct FuncDefinition<'a> {
     pub expression: Box<ExprWithLocation<'a>>,
 }
 
-fn func_arguments(input: &str) -> IResult<&str, Vec<&str>> {
+fn func_arguments(input: Span) -> IResult<Span, Vec<&str>> {
     delimited(
         pair(tag("("), ml_space0),
         separated_list(tuple((ml_space0, tag(","), ml_space0)), identifier),
@@ -20,7 +20,7 @@ fn func_arguments(input: &str) -> IResult<&str, Vec<&str>> {
     )(input)
 }
 
-pub fn func_definition(input: &str) -> IResult<&str, FuncDefinition> {
+pub fn func_definition(input: Span) -> IResult<Span, FuncDefinition> {
     map(
         separated_pair(
             func_arguments,
@@ -34,23 +34,3 @@ pub fn func_definition(input: &str) -> IResult<&str, FuncDefinition> {
     )(input)
 }
 
-#[test]
-fn test_func_definition() {
-    assert_eq!(
-        func_definition("(a, b ) => a + b"),
-        Ok((
-            "",
-            FuncDefinition {
-                arguments: vec!["a", "b"],
-                expression: Box::new(
-                    Expr::Math(Box::new(MathOperation {
-                        expr1: Expr::Identifier("a").with_location(5),
-                        expr2: Expr::Identifier("b").with_location(1),
-                        op: MathOp::Add,
-                    }))
-                    .with_location(3)
-                ),
-            }
-        ))
-    );
-}

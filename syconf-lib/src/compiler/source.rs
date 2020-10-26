@@ -55,15 +55,20 @@ pub struct Location {
     pub position: usize,
 }
 
+impl Location {
+    pub fn line_no(&self) -> usize {
+        let before = &self.source.as_str()[..self.position];
+        before.lines().count()
+    }
+}
+
 impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let before = &self.source.as_str()[..self.position];
-        let line_no = before.lines().count();
         write!(
             f,
             "{}:{}",
             &self.source.0.file.to_str().unwrap_or("somewhere"),
-            line_no
+            self.line_no(),
         )
     }
 }

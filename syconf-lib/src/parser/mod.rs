@@ -28,10 +28,12 @@ mod spaces;
 mod suffix_operators;
 mod value;
 
-pub fn parse_unit(input: &str) -> IResult<&str, ExprWithLocation> {
+pub type Span<'a> = nom_locate::LocatedSpan<&'a str>;
+
+pub fn parse_unit(input: Span) -> IResult<Span, ExprWithLocation> {
     alt((
         map(all_consuming(block_body), |x| {
-            Expr::Block(x).with_location(input.len())
+            Expr::Block(x).from_position(input)
         }),
         delimited(ml_space0, expr, ml_space0),
     ))(input)

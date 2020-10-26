@@ -4,7 +4,8 @@ use nom::combinator::{map, opt, rest_len};
 use nom::sequence::{pair, tuple};
 use nom::IResult;
 
-use crate::parser::{expr_comparison, ml_space0, ml_space1, Expr, ExprWithLocation};
+use crate::parser::{expr_comparison, ml_space0, ml_space1, Expr, ExprWithLocation, Span};
+use nom_locate::position;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Logical<'a> {
@@ -13,54 +14,40 @@ pub enum Logical<'a> {
     Not(ExprWithLocation<'a>),
 }
 
-pub fn expr_logical(input: &str) -> IResult<&str, ExprWithLocation> {
+pub fn expr_logical(input: Span) -> IResult<Span, ExprWithLocation> {
     alt((negation, binary))(input)
 }
 
-fn binary(input: &str) -> IResult<&str, ExprWithLocation> {
+fn binary(input: Span) -> IResult<Span, ExprWithLocation> {
     map(
         tuple((
             expr_comparison,
             opt(pair(
                 map(
-                    tuple((ml_space0, rest_len, alt((tag("and"), tag("or"))), ml_space0)),
+                    tuple((ml_space0, position, alt((tag("and"), tag("or"))), ml_space0)),
                     |(_, rl, op, _)| (rl, op),
                 ),
                 expr_logical,
             )),
         )),
         |(expr1, opt)| match opt {
-            Some(((rest_len, operator), expr2)) => {
-                let func = if operator == "and" {
+            Some(((pos, operator), expr2)) => {
+                let func = if operator.fragment() == &"and" {
                     Logical::And
                 } else {
                     Logical::Or
                 };
-                Expr::Logical(Box::new(func(expr1, expr2))).with_location(rest_len)
+                Expr::Logical(Box::new(func(expr1, expr2))).from_position(pos)
             }
             None => expr1,
         },
     )(input)
 }
 
-fn negation(input: &str) -> IResult<&str, ExprWithLocation> {
+fn negation(input: Span) -> IResult<Span, ExprWithLocation> {
     map(
-        pair(pair(rest_len, pair(tag("not"), ml_space1)), expr_comparison),
-        |((rl, _), ex)| Expr::Logical(Box::new(Logical::Not(ex))).with_location(rl),
+        pair(pair(position, pair(tag("not"), ml_space1)), expr_comparison),
+        |((pos, _), ex)| Expr::Logical(Box::new(Logical::Not(ex))).from_position(pos),
     )(input)
 }
 
-#[test]
-fn test_expr_logical() {
-    assert_eq!(
-        expr_logical("a and b"),
-        Ok((
-            "",
-            Expr::Logical(Box::new(Logical::And(
-                Expr::Identifier("a").with_location(7),
-                Expr::Identifier("b").with_location(1),
-            )))
-            .with_location(5)
-        ))
-    );
-}

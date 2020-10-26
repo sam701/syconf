@@ -8,6 +8,7 @@ edition = "2018"
 
 [dependencies]
 nom = "5.1"
+nom_locate = "2.0"
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
 serde_yaml = "0.8"
