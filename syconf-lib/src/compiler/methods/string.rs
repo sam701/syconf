@@ -50,21 +50,20 @@ fn trim_string() {
             ".trim() == "abc"
     "#
         )
-            .unwrap(),
+        .unwrap(),
         Value::Bool(true)
     )
 }
 
-
-fn split(string: &str, args: &[Value]) -> Result<Value, Error>{
-    ensure!(args.len() == 1, "'split' takes exactly one argument");
-    let x = args[0].clone();
-    let mut y = String::new();
-    if let Value::String(val) = x {
-        y = (*val).to_string();
-
-    }
-    Ok(Value::List(string.split(&y).map(|x|Value::String(x.into())).collect()))
+fn split(string: &str, args: &[Value]) -> Result<Value, Error> {
+    check!(args.len() == 1, "'split' takes exactly one argument");
+    let split_by = args[0].as_value_string()?;
+    Ok(Value::List(
+        string
+            .split(split_by.as_ref())
+            .map(|x| Value::String(x.into()))
+            .collect(),
+    ))
 }
 
 #[test]
@@ -73,26 +72,12 @@ fn split_string() {
         crate::parse_string(
             r#"
             "aa,bb,cc".split(",") == ["aa", "bb", "cc"]
-            "#)
-            .unwrap(),
+            "#
+        )
+        .unwrap(),
         Value::Bool(true)
     )
 }
-
-
-//
-// #[cfg(test)]
-// mod tests {
-//
-//     use crate::parse_string;
-//     use super::split;
-// #[test]
-// fn test_split(){
-//     assert_eq!( parse_string("aa,bb,cc".spli))
-// }
-//
-// }
-//
 
 fn unindent(string: &str, args: &[Value]) -> Result<Value, Error> {
     check!(args.is_empty(), "'unindent' does not take any arguments");
@@ -147,7 +132,7 @@ fn func_unindent() {
         ".unindent()
     "#
         )
-            .unwrap(),
+        .unwrap(),
         Value::String("\n\n    abc\ndef\n            ghk\n".into())
     )
 }
