@@ -11,6 +11,7 @@ pub fn method(method_name: &str) -> Option<&'static StringMethod> {
         "parse_yaml" => &parse_yaml,
         "parse_toml" => &parse_toml,
         "trim" => &trim,
+        "split" => &split,
         "unindent" => &unindent,
         _ => return None,
     })
@@ -54,42 +55,28 @@ fn trim_string() {
     )
 }
 
-// pub fn split<'a, P>(&'a self, pat: P) -> Split<'a, P
 
-fn split<'a>(string: &'a str, args: &[Value]) -> Vec<&'a str> {
-    println!("{} split by {:?}", string, args);
-    // ensure!(args.len() == 1, "'split' takes exactly one argument");
+fn split(string: &str, args: &[Value]) -> Result<Value, Error>{
+    ensure!(args.len() == 1, "'split' takes exactly one argument");
     let x = args[0].clone();
     let mut y = String::new();
     if let Value::String(val) = x {
-        // y = (*(val.to_string())).parse()?;
         y = (*val).to_string();
 
     }
-    println!("{} y value", y);
-
-    "dummy,test".split(&y).collect()
-
-    // Ok(string.split(&y).collect())
-
+    Ok(Value::List(string.split(&y).map(|x|Value::String(x.into())).collect()))
 }
-
-fn dummy() -> String {
-    println!("dummy test");
-    String::from("dummy test")
-}
-
 
 #[test]
 fn split_string() {
-    assert_eq!(dummy(), "dummy test");
-    assert_eq!(split("aa,bb,cc", &[Value::String(",".into())]), ["dumm ankur"].to_vec());
-    // assert_eq!(
-    //     crate::parse_string(
-    //         r#""aa,bb,cc".split(",") == ["aa", "bb", "cc"]"#)
-    //         .unwrap(),
-    //     Value::Bool(true)
-    // )
+    assert_eq!(
+        crate::parse_string(
+            r#"
+            "aa,bb,cc".split(",") == ["aa", "bb", "cc"]
+            "#)
+            .unwrap(),
+        Value::Bool(true)
+    )
 }
 
 
