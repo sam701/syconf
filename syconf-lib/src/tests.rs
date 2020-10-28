@@ -1,5 +1,7 @@
 use crate::compiler::Value;
 use crate::parse_string;
+use std::collections::HashMap;
+use std::rc::Rc;
 
 #[test]
 fn error_location() {
@@ -66,7 +68,7 @@ fn failure() {
     )
     .err()
     .unwrap();
-    assert_eq!(dbg!(err).location.unwrap().line, 3);
+    assert_eq!(err.location.unwrap().line, 3);
 }
 
 #[test]
@@ -155,5 +157,22 @@ fn suffix_operator() {
         )
         .unwrap(),
         Value::Bool(true)
+    );
+}
+
+#[test]
+fn plain_config() {
+    let mut hm = HashMap::new();
+    hm.insert("name".into(), Value::String("winnie the pooh".into()));
+    hm.insert("age".into(), Value::Int(3));
+    assert_eq!(
+        parse_string(
+            r#"
+            name: "winnie the pooh"
+            age: 3
+                  "#
+        )
+        .unwrap(),
+        Value::HashMap(Rc::new(hm))
     );
 }

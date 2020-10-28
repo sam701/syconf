@@ -1,5 +1,7 @@
-use nom::combinator::{all_consuming, map};
-use nom::sequence::delimited;
+use nom::branch::alt;
+use nom::bytes::complete::tag;
+use nom::combinator::{all_consuming, cut, map, peek};
+use nom::sequence::{delimited, pair, preceded, tuple};
 use nom::IResult;
 
 pub use block::{Assignment, BlockExpr};
@@ -30,11 +32,25 @@ mod value;
 pub type Span<'a> = nom_locate::LocatedSpan<&'a str>;
 
 pub fn parse_unit(input: Span) -> IResult<Span, ExprWithLocation> {
-    if input.fragment().trim_start().starts_with("let") {
-        map(all_consuming(block_body), |x| {
-            Expr::Block(x).with_location(input)
-        })(input)
-    } else {
-        all_consuming(delimited(ml_space0, expr, ml_space0))(input)
-    }
+    all_consuming(alt((
+        preceded(
+            peek(pair(ml_space0, tag("let"))),
+            cut(map(block_body, |x| Expr::Block(x).with_location(input))),
+        ),
+        preceded(
+            peek(tuple((ml_space0, identifier, ml_space0, tag(":")))),
+            cut(map(hashmap_body, |hm| {
+                Expr::Value(ConfigValue::HashMap(hm)).with_location(input)
+            })),
+        ),
+        delimited(ml_space0, expr, ml_space0),
+    )))(input)
+
+    // if input.fragment().trim_start().starts_with("let") {
+    //     map(all_consuming(block_body), |x| {
+    //         Expr::Block(x).with_location(input)
+    //     })(input)
+    // } else {
+    //     all_consuming(delimited(ml_space0, expr, ml_space0))(input)
+    // }
 }

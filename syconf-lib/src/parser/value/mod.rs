@@ -5,11 +5,11 @@ use nom::combinator::{map, map_res};
 use nom::multi::separated_list;
 use nom::sequence::{delimited, pair, separated_pair, tuple};
 use nom::{IResult, InputLength, InputTake};
+use nom_locate::position;
 
 use string::ConfigString;
 
 use super::*;
-use nom_locate::position;
 
 pub mod string;
 
@@ -88,11 +88,15 @@ fn list(input: Span) -> IResult<Span, Vec<ExprWithLocation>> {
 }
 
 fn hashmap(input: Span) -> IResult<Span, Vec<HashMapEntry>> {
+    delimited(tag("{"), hashmap_body, tag("}"))(input)
+}
+
+pub fn hashmap_body(input: Span) -> IResult<Span, Vec<HashMapEntry>> {
     delimited(
-        pair(tag("{"), ml_space0),
+        ml_space0,
         map(separated_list(alt((sep, ml_space1)), hashmap_entry), |x| {
             x.into_iter().collect()
         }),
-        pair(alt((sep, ml_space0)), tag("}")),
+        alt((sep, ml_space0)),
     )(input)
 }
