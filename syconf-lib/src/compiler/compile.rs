@@ -80,18 +80,10 @@ impl Compiler {
     }
 
     fn conditional(&self, ctx: &Context, cond: &Conditional) -> Result<NodeContent, Error> {
-        let args = vec![
-            self.compile(ctx, &cond.condition)?,
-            self.compile(ctx, &cond.then_branch)?,
-            self.compile(ctx, &cond.else_branch)?,
-        ];
-        Ok(NodeContent::FunctionCall {
-            name: "if".to_string(),
-            function: CodeNode::new(
-                NodeContent::Resolved(Value::Func(Func::new_builtin(&operators::conditional))),
-                None,
-            ),
-            arguments: Some(args),
+        Ok(NodeContent::Conditional {
+            condition: self.compile(ctx, &cond.condition)?,
+            then_branch: self.compile(ctx, &cond.then_branch)?,
+            else_branch: self.compile(ctx, &cond.else_branch)?,
         })
     }
 

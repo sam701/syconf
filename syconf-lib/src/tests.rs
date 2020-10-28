@@ -176,3 +176,21 @@ fn plain_config() {
         Value::HashMap(Rc::new(hm))
     );
 }
+
+#[test]
+fn conditional_evaluation() {
+    assert_eq!(
+        parse_string(
+            r#"
+            let ff = (x, acc, f) =>
+                if x == 0 then acc else f(x-1, acc+1, f)
+
+            in
+
+            ff(2, 0, ff) == 2
+                  "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    );
+}

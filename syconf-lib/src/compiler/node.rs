@@ -1,9 +1,9 @@
+use crate::compiler::error::Location;
 use crate::compiler::value::{Func, ValueString};
 use crate::compiler::*;
 
 use super::context::Context;
 use super::value::Value;
-use crate::compiler::error::Location;
 
 #[derive(Debug)]
 pub struct FunctionDefinition {
@@ -19,6 +19,11 @@ pub enum NodeContent {
     HashMap(Vec<HmEntry>),
 
     FunctionDefinition(Rc<FunctionDefinition>),
+    Conditional {
+        condition: CodeNode,
+        then_branch: CodeNode,
+        else_branch: CodeNode,
+    },
 
     FunctionInputArgument(String),
     FunctionCall {
@@ -62,6 +67,17 @@ impl CodeNode {
                 .and_then(|x| x.resolve(ctx)),
             NodeContent::FunctionDefinition(fd) => {
                 Ok(Value::Func(Func::new_user_defined(ctx.clone(), fd.clone())))
+            }
+            NodeContent::Conditional {
+                condition: test,
+                then_branch: true_branch,
+                else_branch: false_branch,
+            } => {
+                if test.resolve(ctx)?.as_bool()? {
+                    true_branch.resolve(ctx)
+                } else {
+                    false_branch.resolve(ctx)
+                }
             }
             NodeContent::List(list) => list
                 .iter()
