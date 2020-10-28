@@ -1,7 +1,7 @@
+use std::cmp::min;
 use std::rc::Rc;
 
 use crate::compiler::{Error, Value};
-use std::cmp::min;
 
 pub type StringMethod = dyn Fn(&str, &[Value]) -> Result<Value, Error>;
 
@@ -11,6 +11,7 @@ pub fn method(method_name: &str) -> Option<&'static StringMethod> {
         "parse_yaml" => &parse_yaml,
         "parse_toml" => &parse_toml,
         "trim" => &trim,
+        "split" => &split,
         "unindent" => &unindent,
         _ => return None,
     })
@@ -48,6 +49,30 @@ fn trim_string() {
             abc
             ".trim() == "abc"
     "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    )
+}
+
+fn split(string: &str, args: &[Value]) -> Result<Value, Error> {
+    check!(args.len() == 1, "'split' takes exactly one argument");
+    let split_by = args[0].as_value_string()?;
+    Ok(Value::List(
+        string
+            .split(split_by.as_ref())
+            .map(|x| Value::String(x.into()))
+            .collect(),
+    ))
+}
+
+#[test]
+fn split_string() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+            "aa,bb,cc".split(",") == ["aa", "bb", "cc"]
+            "#
         )
         .unwrap(),
         Value::Bool(true)
