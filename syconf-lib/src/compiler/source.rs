@@ -1,8 +1,10 @@
-use crate::compiler::Error;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+
+use crate::compiler::Error;
+use crate::parser::Span;
 
 #[derive(Clone, Debug)]
 pub struct Source(Rc<SourceRef>);
@@ -37,10 +39,6 @@ impl Source {
     pub fn file(&self) -> &PathBuf {
         &self.0.file
     }
-
-    pub fn path(&self) -> &str {
-        self.0.file.to_str().unwrap()
-    }
 }
 
 impl Source {
@@ -51,24 +49,23 @@ impl Source {
 
 #[derive(Debug, Clone)]
 pub struct Location {
-    pub source: Source,
-    pub position: usize,
-}
-
-impl Location {
-    pub fn line_no(&self) -> usize {
-        let before = &self.source.as_str()[..self.position];
-        before.lines().count()
-    }
+    pub line: usize,
+    pub column: usize,
+    pub offset: usize,
 }
 
 impl std::fmt::Display for Location {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}:{}",
-            &self.source.0.file.to_str().unwrap_or("somewhere"),
-            self.line_no(),
-        )
+        write!(f, "{}:{}", &self.line, self.column,)
+    }
+}
+
+impl<'a> From<&Span<'a>> for Location {
+    fn from(loc: &Span<'a>) -> Self {
+        Self {
+            line: loc.location_line() as usize,
+            column: loc.get_column(),
+            offset: loc.location_offset(),
+        }
     }
 }

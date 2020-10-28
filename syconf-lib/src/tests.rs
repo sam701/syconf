@@ -12,8 +12,7 @@ fn error_location() {
     )
     .err()
     .unwrap();
-    println!("Error: {}", &err);
-    let line_no = err.location.unwrap().line_no();
+    let line_no = err.location.unwrap().line;
     assert_eq!(line_no, 2);
 }
 
@@ -57,13 +56,18 @@ fn hashmap() {
     );
 }
 
-// #[test]
-// fn failure() {
-//     let err = parse_string(r#"
-//     let a = 3 abc
-//     "#).err().unwrap();
-//     assert_eq!(dbg!(err).location.unwrap().position, 11);
-// }
+#[test]
+fn failure() {
+    let err = parse_string(
+        r#"
+    let a = 3
+    abc
+    "#,
+    )
+    .err()
+    .unwrap();
+    assert_eq!(dbg!(err).location.unwrap().line, 3);
+}
 
 #[test]
 fn comparison() {

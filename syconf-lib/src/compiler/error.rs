@@ -1,5 +1,11 @@
+use std::cmp::min;
+
+use nom::error::ErrorKind;
+use nom::{Err, InputLength};
+
 use crate::compiler::value::TypeMismatch;
 use crate::compiler::Location;
+use crate::parser::Span;
 
 pub type Error = ErrorWithLocation;
 // pub type Error = anyhow::Error;
@@ -58,6 +64,31 @@ impl From<TypeMismatch> for ErrorWithLocation {
     }
 }
 
+impl<'a> From<&Span<'a>> for ErrorWithLocation {
+    fn from(loc: &Span<'a>) -> Self {
+        ErrorWithLocation {
+            location: Some(loc.into()),
+            message: format!(
+                "Cannot parse: '{}'",
+                &loc.fragment()[..min(20, loc.input_len())]
+            ),
+        }
+    }
+}
+
+impl<'a> From<Err<(Span<'a>, ErrorKind)>> for ErrorWithLocation {
+    fn from(e: Err<(Span<'a>, ErrorKind)>) -> Self {
+        match e {
+            Err::Incomplete(_) => ErrorWithLocation {
+                location: None,
+                message: "Incomplete input".to_owned(),
+            },
+            Err::Error((loc, _)) => (&loc).into(),
+            Err::Failure((loc, _)) => (&loc).into(),
+        }
+    }
+}
+
 #[macro_export]
 macro_rules! check {
     ($cond:expr, $msg:literal $(,)?) => {
@@ -81,10 +112,7 @@ macro_rules! check {
 #[test]
 fn error_location() {
     let result = crate::parse_string(" abc");
-    println!("Result: {:?}", &result);
     let err = result.err().unwrap();
-    println!("Error: {}", &err);
     let loc = err.location;
-    println!("Location: {:?}", loc);
-    assert_eq!(loc.unwrap().position, 1);
+    assert_eq!(loc.unwrap().line, 1);
 }

@@ -1,4 +1,3 @@
-use nom::branch::alt;
 use nom::combinator::{all_consuming, map};
 use nom::sequence::delimited;
 use nom::IResult;
@@ -31,10 +30,11 @@ mod value;
 pub type Span<'a> = nom_locate::LocatedSpan<&'a str>;
 
 pub fn parse_unit(input: Span) -> IResult<Span, ExprWithLocation> {
-    alt((
+    if input.fragment().trim_start().starts_with("let") {
         map(all_consuming(block_body), |x| {
             Expr::Block(x).with_location(input)
-        }),
-        delimited(ml_space0, expr, ml_space0),
-    ))(input)
+        })(input)
+    } else {
+        all_consuming(delimited(ml_space0, expr, ml_space0))(input)
+    }
 }

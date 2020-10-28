@@ -4,7 +4,7 @@ use crate::compiler::context::Context;
 use crate::compiler::functions::FunctionSig;
 use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
 use crate::compiler::value::{Func, Value};
-use crate::compiler::{methods, operators, Error, ErrorWithLocation, Location, Source};
+use crate::compiler::{methods, operators, Error, ErrorWithLocation, Source};
 use crate::parser::string::ConfigString;
 use crate::parser::*;
 use crate::parser::{Expr, ExprWithLocation};
@@ -16,13 +16,6 @@ pub struct Compiler {
 impl Compiler {
     pub fn new(source: Source) -> Self {
         Self { source }
-    }
-
-    fn create_location(&self, location: &Span) -> Location {
-        Location {
-            source: self.source.clone(),
-            position: location.location_offset(),
-        }
     }
 
     pub fn compile(&self, ctx: &Context, expr: &ExprWithLocation) -> Result<CodeNode, Error> {
@@ -38,10 +31,7 @@ impl Compiler {
             Expr::Suffix(suffix) => self.suffix_operator(ctx, suffix)?,
             Expr::Import(path) => return self.import(path),
         };
-        Ok(CodeNode::new(
-            cell,
-            Some(self.create_location(&expr.location)),
-        ))
+        Ok(CodeNode::new(cell, Some((&expr.location).into())))
     }
 
     fn suffix_operator(&self, ctx: &Context, suffix: &SuffixExpr) -> Result<NodeContent, Error> {
@@ -196,7 +186,7 @@ impl Compiler {
             .get_value(id)
             .or_else(|| super::functions::lookup(id).map(|func| builtin_func_node(func)))
             .ok_or_else(|| ErrorWithLocation {
-                location: Some(self.create_location(loc)),
+                location: Some(loc.into()),
                 message: format!("Variable '{}' is not defined", id),
             })?;
         Ok(NodeContent::FunctionCall {

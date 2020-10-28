@@ -11,7 +11,6 @@ use parser::*;
 
 pub use crate::compiler::Value;
 use crate::compiler::{ErrorWithLocation, Source};
-use nom_locate::LocatedSpan;
 
 mod compiler;
 mod parser;
@@ -29,10 +28,9 @@ pub fn parse_file(file_name: &str) -> Result<Value, ErrorWithLocation> {
 
 fn parse_source(source: Source) -> Result<Value, ErrorWithLocation> {
     let input = source.as_str();
-    let (rest, expr) =
-        parse_unit(LocatedSpan::new(input)).map_err(|e| anyhow!("Cannot parse {}", e))?;
+    let (rest, expr) = parse_unit(Span::new(input))?;
     if !rest.fragment().is_empty() {
-        return Err(anyhow!("Cannot parse: '{}'", rest.fragment()).into());
+        return Err(anyhow!("Cannot parse (incomplete): '{}'", rest.fragment()).into());
     }
     compiler::compile(&expr, source.clone())
 }
