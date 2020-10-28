@@ -21,12 +21,9 @@ fn main() {
         )
         .arg(
             Arg::with_name("input")
-                .long("input")
-                .short("i")
                 .help("Input file name")
-                .takes_value(true)
-                .value_name("FILE")
-                .default_value("stdin"),
+                .required(true)
+                .value_name("CONFIG_FILE"),
         )
         .arg(
             Arg::with_name("output")
@@ -56,7 +53,7 @@ fn main() {
     }
 
     let result = match matches.value_of("input").unwrap() {
-        "stdin" => {
+        "-" => {
             let mut s = String::new();
             io::stdin().read_to_string(&mut s).unwrap();
             syconf_lib::parse_string(&s)
