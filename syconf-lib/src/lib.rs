@@ -5,12 +5,14 @@ extern crate derivative;
 #[macro_use]
 extern crate tracing;
 
+use std::fs::read_to_string;
 use std::path::Path;
+use std::rc::Rc;
 
 use parser::*;
 
+use crate::compiler::ErrorWithLocation;
 pub use crate::compiler::Value;
-use crate::compiler::{ErrorWithLocation, Source};
 
 mod compiler;
 mod parser;
@@ -19,18 +21,26 @@ mod parser;
 mod tests;
 
 pub fn parse_string(input: &str) -> Result<Value, ErrorWithLocation> {
-    parse_source(Source::from_string(input.to_string()))
+    parse_source(Span::new_extra(input, Rc::new("<input>".to_owned())))
 }
 
 pub fn parse_file(file_name: &str) -> Result<Value, ErrorWithLocation> {
-    parse_source(Source::from_file(Path::new(file_name))?)
+    let content = read_to_string(file_name).map_err(|e| ErrorWithLocation {
+        location: None,
+        message: format!("Cannot read file '{}': {}", file_name, e),
+    })?;
+    let normalized_fn = std::fs::canonicalize(Path::new(file_name))
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_owned();
+    parse_source(Span::new_extra(&content, Rc::new(normalized_fn)))
 }
 
-fn parse_source(source: Source) -> Result<Value, ErrorWithLocation> {
-    let input = source.as_str();
-    let (rest, expr) = parse_unit(Span::new(input))?;
+fn parse_source(source: Span) -> Result<Value, ErrorWithLocation> {
+    let (rest, expr) = parse_unit(source)?;
     if !rest.fragment().is_empty() {
         return Err(anyhow!("Cannot parse (incomplete): '{}'", rest.fragment()).into());
     }
-    compiler::compile(&expr, source.clone())
+    compiler::compile(&expr)
 }

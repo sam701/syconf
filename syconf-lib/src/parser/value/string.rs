@@ -4,7 +4,7 @@ use nom::combinator::{all_consuming, map};
 use nom::error::ErrorKind;
 use nom::multi::many1;
 use nom::sequence::{delimited, pair};
-use nom::{FindSubstring, IResult, InputTake, Needed, Slice};
+use nom::{FindSubstring, IResult, InputLength, InputTake, Needed, Slice};
 
 use crate::parser::expr::expr;
 use crate::parser::{ml_space0, ExprWithLocation, Span};
@@ -40,16 +40,18 @@ pub fn parse(input: Span) -> IResult<Span, Vec<ConfigString>> {
 
 #[test]
 fn raw_string_vec() {
+    use crate::parser::test_helpers::span;
+
     assert_eq!(
-        parse(Span::new("\"hello\n\"")).unwrap().1,
+        parse(span("\"hello\n\"")).unwrap().1,
         vec![ConfigString::Raw("hello\n")]
     );
     assert_eq!(
-        parse(Span::new(r#"'hello'"#)).unwrap().1,
+        parse(span(r#"'hello'"#)).unwrap().1,
         vec![ConfigString::Raw("hello")]
     );
     assert_eq!(
-        parse(Span::new(r##"#"abco""#"##)).unwrap().1,
+        parse(span(r##"#"abco""#"##)).unwrap().1,
         vec![ConfigString::Raw("abco\"")]
     );
 }
@@ -67,6 +69,9 @@ fn interpolated_string(input: Span) -> IResult<Span, ConfigString> {
             let (rest, _res) = input.take_split(x);
             Ok((rest, ConfigString::Raw(&input.fragment()[..x])))
         }
-        None => Ok((Span::new(""), ConfigString::Raw(input.fragment()))),
+        None => Ok((
+            input.slice(input.input_len()..),
+            ConfigString::Raw(input.fragment()),
+        )),
     }
 }

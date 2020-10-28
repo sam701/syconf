@@ -1,23 +1,19 @@
+use std::fs::read_to_string;
+use std::path::Path;
 use std::rc::Rc;
 
 use crate::compiler::context::Context;
 use crate::compiler::functions::FunctionSig;
 use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
 use crate::compiler::value::{Func, Value};
-use crate::compiler::{methods, operators, Error, ErrorWithLocation, Source};
+use crate::compiler::{methods, operators, Error, ErrorWithLocation};
 use crate::parser::string::ConfigString;
 use crate::parser::*;
 use crate::parser::{Expr, ExprWithLocation};
 
-pub struct Compiler {
-    source: Source,
-}
+pub struct Compiler;
 
 impl Compiler {
-    pub fn new(source: Source) -> Self {
-        Self { source }
-    }
-
     pub fn compile(&self, ctx: &Context, expr: &ExprWithLocation) -> Result<CodeNode, Error> {
         let cell = match &expr.inner {
             Expr::Value(val) => self.config_value(ctx, val)?,
@@ -29,7 +25,7 @@ impl Compiler {
             Expr::Conditional(cond) => self.conditional(ctx, cond)?,
             Expr::Logical(logical) => self.logical(ctx, logical)?,
             Expr::Suffix(suffix) => self.suffix_operator(ctx, suffix)?,
-            Expr::Import(path) => return self.import(path),
+            Expr::Import(path) => return self.import(path, &expr.location),
         };
         Ok(CodeNode::new(cell, Some((&expr.location).into())))
     }
@@ -215,18 +211,26 @@ impl Compiler {
         )))
     }
 
-    fn import(&self, file_name: &str) -> Result<CodeNode, Error> {
-        let src = Source::from_file(
-            self.source
-                .file()
-                .parent()
-                .unwrap()
-                .join(file_name)
-                .as_path(),
-        )?;
-        let (_, expr) =
-            parse_unit(Span::new(src.as_str())).map_err(|e| anyhow!("Cannot parse {}", e))?;
-        Compiler::new(src.clone()).compile(&Context::empty(), &expr)
+    fn import(&self, file_name: &str, location: &Span) -> Result<CodeNode, Error> {
+        let final_file_name = Path::new(location.extra.as_str())
+            .parent()
+            .unwrap()
+            .join(file_name)
+            .canonicalize()
+            .unwrap();
+        let content = read_to_string(&final_file_name).map_err(|e| ErrorWithLocation {
+            location: Some(location.into()),
+            message: format!(
+                "Cannot read file '{}': {}",
+                final_file_name.to_str().unwrap(),
+                &e
+            ),
+        })?;
+        let (_, expr) = parse_unit(Span::new_extra(
+            &content,
+            Rc::new(final_file_name.to_str().unwrap().to_owned()),
+        ))?;
+        Compiler.compile(&Context::empty(), &expr)
     }
 }
 

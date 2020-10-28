@@ -67,12 +67,12 @@ fn raw_string(s: &str) -> Expr {
 }
 
 fn sep(input: Span) -> IResult<Span, &str> {
-    let orig = input;
+    let orig = input.clone();
     let (input, _) = ml_space0(input)?;
     let (input, _) = tag(",")(input)?;
     let (input, _) = ml_space0(input)?;
     Ok((
-        input,
+        input.clone(),
         orig.take_split(orig.input_len() - input.input_len())
             .1
             .fragment(),

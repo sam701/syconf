@@ -49,7 +49,7 @@ pub fn identifier(input: Span) -> IResult<Span, &str> {
     let (next_input, (a, b)) = pair(
         take_while1(|x: char| x.is_alpha() || x == '_'),
         take_while(|x: char| x.is_alphanumeric() || x == '_'),
-    )(input)?;
+    )(input.clone())?;
     Ok((
         next_input,
         input.take_split(a.input_len() + b.input_len()).1.fragment(),

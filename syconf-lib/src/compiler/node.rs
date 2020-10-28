@@ -3,6 +3,7 @@ use crate::compiler::*;
 
 use super::context::Context;
 use super::value::Value;
+use crate::compiler::error::Location;
 
 #[derive(Debug)]
 pub struct FunctionDefinition {

@@ -1,3 +1,4 @@
+let cfg = import "./config.sy"
 let github_token = {GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
 
 let download_artifact = (os) => {
@@ -12,8 +13,8 @@ let upload_artifact = (os) => {
     env: github_token
     with: {
         upload_url: '${{ steps.create_release.outputs.upload_url }}'
-        asset_path: "syconf-${os}.zip"
-        asset_name: "syconf-${os}.zip"
+        asset_path: "${cfg.bin_name}-${os}.zip"
+        asset_name: "${cfg.bin_name}-${os}.zip"
         asset_content_type: "application/zip"
     }
 }

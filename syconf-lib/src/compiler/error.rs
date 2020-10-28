@@ -4,11 +4,11 @@ use nom::error::ErrorKind;
 use nom::{Err, InputLength};
 
 use crate::compiler::value::TypeMismatch;
-use crate::compiler::Location;
 use crate::parser::Span;
 
+use std::rc::Rc;
+
 pub type Error = ErrorWithLocation;
-// pub type Error = anyhow::Error;
 
 #[derive(thiserror::Error, Debug)]
 pub struct ErrorWithLocation {
@@ -107,6 +107,31 @@ macro_rules! check {
             });
         }
     };
+}
+
+#[derive(Debug, Clone)]
+pub struct Location {
+    pub source: Rc<String>,
+    pub line: usize,
+    pub column: usize,
+    pub offset: usize,
+}
+
+impl std::fmt::Display for Location {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}:{}", &self.source, &self.line, self.column,)
+    }
+}
+
+impl<'a> From<&Span<'a>> for Location {
+    fn from(loc: &Span<'a>) -> Self {
+        Self {
+            source: loc.extra.clone(),
+            line: loc.location_line() as usize,
+            column: loc.get_column(),
+            offset: loc.location_offset(),
+        }
+    }
 }
 
 #[test]

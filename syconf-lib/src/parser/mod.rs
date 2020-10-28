@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::combinator::{all_consuming, cut, map, peek};
@@ -27,30 +29,26 @@ mod logical;
 mod math;
 mod spaces;
 mod suffix_operators;
+#[cfg(test)]
+mod test_helpers;
 mod value;
 
-pub type Span<'a> = nom_locate::LocatedSpan<&'a str>;
+pub type Span<'a> = nom_locate::LocatedSpan<&'a str, Rc<String>>;
 
 pub fn parse_unit(input: Span) -> IResult<Span, ExprWithLocation> {
     all_consuming(alt((
         preceded(
             peek(pair(ml_space0, tag("let"))),
-            cut(map(block_body, |x| Expr::Block(x).with_location(input))),
+            cut(map(block_body, |x| {
+                Expr::Block(x).with_location(input.clone())
+            })),
         ),
         preceded(
             peek(tuple((ml_space0, identifier, ml_space0, tag(":")))),
             cut(map(hashmap_body, |hm| {
-                Expr::Value(ConfigValue::HashMap(hm)).with_location(input)
+                Expr::Value(ConfigValue::HashMap(hm)).with_location(input.clone())
             })),
         ),
         delimited(ml_space0, expr, ml_space0),
-    )))(input)
-
-    // if input.fragment().trim_start().starts_with("let") {
-    //     map(all_consuming(block_body), |x| {
-    //         Expr::Block(x).with_location(input)
-    //     })(input)
-    // } else {
-    //     all_consuming(delimited(ml_space0, expr, ml_space0))(input)
-    // }
+    )))(input.clone())
 }

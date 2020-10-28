@@ -17,18 +17,13 @@ pub fn ml_space1(input: Span) -> IResult<Span, &str> {
 
 #[test]
 fn test_ml_space1() {
+    use crate::parser::test_helpers::span;
     use nom::error::ErrorKind;
+    assert_eq!(ml_space1(span("  // hello\n")).unwrap().1, "  // hello\n");
+    assert_eq!(ml_space1(span("// hello\n//")).unwrap().1, "// hello\n//");
     assert_eq!(
-        ml_space1(Span::new("  // hello\n")).unwrap().1,
-        "  // hello\n"
-    );
-    assert_eq!(
-        ml_space1(Span::new("// hello\n//")).unwrap().1,
-        "// hello\n//"
-    );
-    assert_eq!(
-        ml_space1(Span::new("")),
-        Err(nom::Err::Error((Span::new(""), ErrorKind::Verify)))
+        ml_space1(span("")),
+        Err(nom::Err::Error((span(""), ErrorKind::Verify)))
     );
 }
 
@@ -44,14 +39,9 @@ pub fn ml_space0(input: Span) -> IResult<Span, &str> {
 
 #[test]
 fn test_ml_space0() {
-    assert_eq!(
-        ml_space0(Span::new("  // hello\n")).unwrap().1,
-        "  // hello\n"
-    );
-    assert_eq!(
-        ml_space0(Span::new("// hello\n//")).unwrap().1,
-        "// hello\n//"
-    );
+    use crate::parser::test_helpers::span;
+    assert_eq!(ml_space0(span("  // hello\n")).unwrap().1, "  // hello\n");
+    assert_eq!(ml_space0(span("// hello\n//")).unwrap().1, "// hello\n//");
 }
 
 fn line_comment(input: Span) -> IResult<Span, &str> {
