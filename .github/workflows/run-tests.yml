@@ -5,6 +5,8 @@ on:
       - 'syconf-lib/**'
       - 'syconf-bin/**'
       - 'Cargo.*'
+    tags-ignore:
+      - '*'
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
