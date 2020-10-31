@@ -12,6 +12,7 @@ pub fn method(method_name: &str) -> Option<&'static StringMethod> {
         "parse_toml" => &parse_toml,
         "trim" => &trim,
         "split" => &split,
+        "lines" => &lines,
         "unindent" => &unindent,
         _ => return None,
     })
@@ -134,5 +135,27 @@ fn func_unindent() {
         )
         .unwrap(),
         Value::String("\n\n    abc\ndef\n            ghk\n".into())
+    )
+}
+
+fn lines(string: &str, args: &[Value]) -> Result<Value, Error> {
+    check!(args.is_empty(), "'lines' does not expect any argument");
+    Ok(Value::List(
+        string.lines().map(|x| Value::String(x.into())).collect(),
+    ))
+}
+
+#[test]
+fn test_lines() {
+    assert_eq!(
+        crate::parse_string(
+            r##"
+        #"line1
+        line2
+        line3"#.lines().map((x) => x.trim()) == ["line1", "line2", "line3"]
+    "##
+        )
+        .unwrap(),
+        Value::Bool(true)
     )
 }
