@@ -383,6 +383,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "syconf-serde"
+version = "0.2.0"
+dependencies = [
+ "serde",
+ "syconf-lib",
+]
+
+[[package]]
 name = "syn"
 version = "1.0.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"

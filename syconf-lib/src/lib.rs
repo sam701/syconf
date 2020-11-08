@@ -11,8 +11,8 @@ use std::rc::Rc;
 
 use parser::*;
 
-use crate::compiler::ErrorWithLocation;
-pub use crate::compiler::Value;
+pub use crate::compiler::ErrorWithLocation;
+pub use crate::compiler::{Value, ValueString};
 
 mod compiler;
 mod parser;
