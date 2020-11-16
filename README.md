@@ -19,7 +19,7 @@ Existing configuration languages either do not support templating and functions,
 or have complex grammars and multiple features that often go beyond the scope of a configuration language, 
 e.g. JsonNet, Dhall.
 
-*SyConf* is a simple configuration language that supports used defined functions, string interpolation, 
+*SyConf* is a simple, pure functional, not Turing complete configuration language that supports user defined functions, powerful string interpolation, 
 and helps to keep complex configurations concise and maintainable.
 
 ## Features
@@ -96,7 +96,7 @@ The letters `S` and `Y` in the name *SyConf* are the first and the last letter i
 * [HCL](https://github.com/hashicorp/hcl) - structured language, supports functions, does not support user defined functions.
 * [jsonnet](https://jsonnet.org) - supports functions and templating, has complex syntax, does not support functions as first level citizens.
 * [dhall](https://dhall-lang.org) - has support for types, has complex syntax with a lot of features.
-
+* [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) - heavy (compared to SyConf), full featured, Turing-complete language with side effects.
 
 ## Licence
 [Apache 2.0](./LICENSE)

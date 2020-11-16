@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use context::Context;
-pub use value::{Value, ValueString};
+pub use value::{Func, TypeMismatch, Value, ValueString};
 
 use crate::parser::ExprWithLocation;
 pub use error::{Error, ErrorWithLocation};

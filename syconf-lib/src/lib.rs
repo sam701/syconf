@@ -12,7 +12,7 @@ use std::rc::Rc;
 use parser::*;
 
 pub use crate::compiler::ErrorWithLocation;
-pub use crate::compiler::{Value, ValueString};
+pub use crate::compiler::{Func, TypeMismatch, Value, ValueString};
 
 mod compiler;
 mod parser;

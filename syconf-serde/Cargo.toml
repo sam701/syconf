@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 syconf-lib = { path = "../syconf-lib" }
 serde = "1.0"
+thiserror = "1.0"
