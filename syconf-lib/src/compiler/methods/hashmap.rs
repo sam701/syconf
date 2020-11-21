@@ -1,11 +1,12 @@
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use crate::compiler::value::ValueString;
 use crate::compiler::value_extraction::ValueExtractor;
 use crate::compiler::{Error, Value};
+use std::sync::Arc;
 
-pub type HashmapMethod = dyn Fn(&HashMap<ValueString, Value>, &[Value]) -> Result<Value, Error>;
+pub type HashmapMethod =
+    dyn Fn(&HashMap<ValueString, Value>, &[Value]) -> Result<Value, Error> + Send + Sync;
 
 pub fn method(name: &str) -> Option<&'static HashmapMethod> {
     Some(match name {
@@ -32,7 +33,7 @@ fn map(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error>
             _ => return Err("hashmap map function must return a list of 2 values".into()),
         }
     }
-    Ok(Value::HashMap(Rc::new(new_hm)))
+    Ok(Value::HashMap(Arc::new(new_hm)))
 }
 
 #[test]
@@ -59,7 +60,7 @@ fn filter(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Err
             filtered.insert(ix.clone(), val.clone());
         }
     }
-    Ok(Value::HashMap(Rc::new(filtered)))
+    Ok(Value::HashMap(Arc::new(filtered)))
 }
 
 #[test]
@@ -97,7 +98,7 @@ fn insert(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Err
     check!(args.len() == 2, "expects 2 arguments");
     let mut out = hm.clone();
     out.insert(args[0].as_value_string()?.clone(), args[1].clone());
-    Ok(Value::HashMap(Rc::new(out)))
+    Ok(Value::HashMap(Arc::new(out)))
 }
 
 #[test]

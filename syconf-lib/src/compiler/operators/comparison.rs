@@ -1,7 +1,8 @@
+use crate::compiler::value::FunctionSig;
 use crate::compiler::{Error, Value};
 use crate::parser::ComparisonOperator;
 
-pub fn comparison(op: &ComparisonOperator) -> &'static dyn Fn(&[Value]) -> Result<Value, Error> {
+pub fn comparison(op: &ComparisonOperator) -> &'static FunctionSig {
     use ComparisonOperator::*;
     match op {
         Equal => &equal,

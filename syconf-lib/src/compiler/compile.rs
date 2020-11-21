@@ -1,15 +1,14 @@
 use std::fs::read_to_string;
 use std::path::Path;
-use std::rc::Rc;
 
 use crate::compiler::context::Context;
-use crate::compiler::functions::FunctionSig;
 use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
-use crate::compiler::value::{Func, Value};
+use crate::compiler::value::{Func, FunctionSig, Value};
 use crate::compiler::{methods, operators, Error, ErrorWithLocation};
 use crate::parser::string::ConfigString;
 use crate::parser::*;
 use crate::parser::{Expr, ExprWithLocation};
+use std::sync::Arc;
 
 pub struct Compiler;
 
@@ -195,7 +194,7 @@ impl Compiler {
         }
         let val = self.compile(&ns, &fd.expression)?;
         let string_args: Vec<String> = fd.arguments.iter().map(|x| x.to_string()).collect();
-        Ok(NodeContent::FunctionDefinition(Rc::new(
+        Ok(NodeContent::FunctionDefinition(Arc::new(
             FunctionDefinition {
                 node: val,
                 argument_names: Some(string_args),
@@ -204,7 +203,7 @@ impl Compiler {
     }
 
     fn import(&self, file_name: &str, location: &Span) -> Result<CodeNode, Error> {
-        let final_file_name = Path::new(location.extra.as_str())
+        let final_file_name = Path::new(&*location.extra)
             .parent()
             .unwrap()
             .join(file_name)
@@ -220,13 +219,13 @@ impl Compiler {
         })?;
         let (_, expr) = parse_unit(Span::new_extra(
             &content,
-            Rc::new(final_file_name.to_str().unwrap().to_owned()),
+            final_file_name.to_str().unwrap().into(),
         ))?;
         Compiler.compile(&Context::empty(), &expr)
     }
 }
 
-fn builtin_func_node(func: &'static (dyn Fn(&[Value]) -> Result<Value, Error>)) -> CodeNode {
+fn builtin_func_node(func: &'static FunctionSig) -> CodeNode {
     CodeNode::new(
         NodeContent::Resolved(Value::Func(Func::new_builtin(func))),
         None,

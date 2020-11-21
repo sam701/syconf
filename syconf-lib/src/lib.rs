@@ -7,7 +7,6 @@ extern crate tracing;
 
 use std::fs::read_to_string;
 use std::path::Path;
-use std::rc::Rc;
 
 use parser::*;
 
@@ -21,7 +20,7 @@ mod parser;
 mod tests;
 
 pub fn parse_string(input: &str) -> Result<Value, ErrorWithLocation> {
-    parse_source(Span::new_extra(input, Rc::new("<input>".to_owned())))
+    parse_source(Span::new_extra(input, "<input>".into()))
 }
 
 pub fn parse_file(file_name: &str) -> Result<Value, ErrorWithLocation> {
@@ -34,7 +33,7 @@ pub fn parse_file(file_name: &str) -> Result<Value, ErrorWithLocation> {
         .to_str()
         .unwrap()
         .to_owned();
-    parse_source(Span::new_extra(&content, Rc::new(normalized_fn)))
+    parse_source(Span::new_extra(&content, normalized_fn.into()))
 }
 
 fn parse_source(source: Span) -> Result<Value, ErrorWithLocation> {

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::combinator::{all_consuming, cut, map, peek};
@@ -18,6 +16,7 @@ pub use suffix_operators::*;
 pub use value::*;
 
 use crate::parser::block::block_body;
+use std::sync::Arc;
 
 mod block;
 mod comparison;
@@ -33,7 +32,7 @@ mod suffix_operators;
 mod test_helpers;
 mod value;
 
-pub type Span<'a> = nom_locate::LocatedSpan<&'a str, Rc<String>>;
+pub type Span<'a> = nom_locate::LocatedSpan<&'a str, Arc<str>>;
 
 pub fn parse_unit(input: Span) -> IResult<Span, ExprWithLocation> {
     all_consuming(alt((

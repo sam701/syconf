@@ -4,6 +4,7 @@ use crate::compiler::*;
 
 use super::context::Context;
 use super::value::Value;
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct FunctionDefinition {
@@ -18,7 +19,7 @@ pub enum NodeContent {
     List(Vec<CodeNode>),
     HashMap(Vec<HmEntry>),
 
-    FunctionDefinition(Rc<FunctionDefinition>),
+    FunctionDefinition(Arc<FunctionDefinition>),
     Conditional {
         condition: CodeNode,
         then_branch: CodeNode,
@@ -43,7 +44,7 @@ pub struct HmEntry {
 
 #[derive(Clone, Derivative)]
 #[derivative(Debug = "transparent")]
-pub struct CodeNode(Rc<CodeNodeRef>);
+pub struct CodeNode(Arc<CodeNodeRef>);
 
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -55,7 +56,7 @@ struct CodeNodeRef {
 
 impl CodeNode {
     pub fn new(content: NodeContent, location: Option<Location>) -> Self {
-        Self(Rc::new(CodeNodeRef { content, location }))
+        Self(Arc::new(CodeNodeRef { content, location }))
     }
 
     pub fn resolve(&self, ctx: &Context) -> Result<Value, ErrorWithLocation> {
@@ -97,7 +98,7 @@ impl CodeNode {
                     ))
                 })
                 .collect::<Result<HashMap<ValueString, Value>, ErrorWithLocation>>()
-                .map(Rc::new)
+                .map(Arc::new)
                 .map(Value::HashMap),
             NodeContent::FunctionCall {
                 name: _,

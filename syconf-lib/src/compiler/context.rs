@@ -1,11 +1,10 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use super::node::CodeNode;
+use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Debug)]
-pub struct Context(Rc<RefCell<ContextRef>>);
+pub struct Context(Arc<Mutex<ContextRef>>);
 
 #[derive(Debug)]
 struct ContextRef {
@@ -15,14 +14,14 @@ struct ContextRef {
 
 impl Context {
     pub fn empty() -> Self {
-        Self(Rc::new(RefCell::new(ContextRef {
+        Self(Arc::new(Mutex::new(ContextRef {
             bindings: HashMap::new(),
             parent: None,
         })))
     }
 
     pub fn get_value(&self, val: &str) -> Option<CodeNode> {
-        let x = self.0.borrow();
+        let x = self.0.lock().expect("cannot lock");
         x.bindings
             .get(val)
             .map(Clone::clone)
@@ -30,13 +29,17 @@ impl Context {
     }
 
     pub fn new_child(&self) -> Self {
-        Self(Rc::new(RefCell::new(ContextRef {
+        Self(Arc::new(Mutex::new(ContextRef {
             bindings: HashMap::new(),
             parent: Some(self.clone()),
         })))
     }
 
     pub fn bind(&self, key: String, value: CodeNode) {
-        self.0.borrow_mut().bindings.insert(key, value);
+        self.0
+            .lock()
+            .expect("cannot lock")
+            .bindings
+            .insert(key, value);
     }
 }

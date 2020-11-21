@@ -2,11 +2,11 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
-use std::rc::Rc;
 
 use clap::{App, Arg};
 use tracing::Level;
 
+use std::sync::Arc;
 use syconf_lib::Value;
 
 fn main() {
@@ -91,9 +91,9 @@ fn main() {
 enum SerializableValue {
     Bool(bool),
     Int(i32),
-    String(Rc<str>),
-    HashMap(BTreeMap<Rc<str>, SerializableValue>),
-    List(Rc<[SerializableValue]>),
+    String(Arc<str>),
+    HashMap(BTreeMap<Arc<str>, SerializableValue>),
+    List(Arc<[SerializableValue]>),
 }
 
 fn to_serializable(v: &Value) -> SerializableValue {

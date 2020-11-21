@@ -6,7 +6,7 @@ use nom::{Err, InputLength};
 use crate::compiler::value::TypeMismatch;
 use crate::parser::Span;
 
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub type Error = ErrorWithLocation;
 
@@ -111,7 +111,7 @@ macro_rules! check {
 
 #[derive(Debug, Clone)]
 pub struct Location {
-    pub source: Rc<String>,
+    pub source: Arc<str>,
     pub line: usize,
     pub column: usize,
     pub offset: usize,

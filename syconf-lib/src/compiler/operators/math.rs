@@ -1,7 +1,8 @@
+use crate::compiler::value::FunctionSig;
 use crate::compiler::{Error, Value};
 use crate::parser::MathOp;
 
-pub fn math(op: &MathOp) -> &'static dyn Fn(&[Value]) -> Result<Value, Error> {
+pub fn math(op: &MathOp) -> &'static FunctionSig {
     match op {
         MathOp::Add => &op_add,
         MathOp::Sub => &op_sub,

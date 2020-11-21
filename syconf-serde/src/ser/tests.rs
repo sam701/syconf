@@ -1,5 +1,6 @@
 use crate::ser::to_value;
-use std::rc::Rc;
+
+use std::sync::Arc;
 use syconf_lib::Value;
 
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, serde::Serialize)]
@@ -35,7 +36,7 @@ fn serialize_struct() {
     let val = to_value(&abc).unwrap();
     assert_eq!(
         val,
-        Value::HashMap(Rc::new(
+        Value::HashMap(Arc::new(
             [
                 ("string", Value::String("abc".into())),
                 ("boo", Value::Bool(true)),
@@ -47,7 +48,7 @@ fn serialize_struct() {
                 ("name1", Value::String("aa".into())),
                 (
                     "name2",
-                    Value::HashMap(Rc::new(
+                    Value::HashMap(Arc::new(
                         [("aa", Value::String("aa".into())), ("bb", Value::Int(44)),]
                             .iter()
                             .cloned()

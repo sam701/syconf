@@ -1,7 +1,8 @@
 use crate::compiler::Value;
 use crate::parse_string;
 use std::collections::HashMap;
-use std::rc::Rc;
+
+use std::sync::Arc;
 
 #[test]
 fn error_location() {
@@ -173,7 +174,7 @@ fn plain_config() {
                   "#
         )
         .unwrap(),
-        Value::HashMap(Rc::new(hm))
+        Value::HashMap(Arc::new(hm))
     );
 }
 

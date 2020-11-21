@@ -1,10 +1,9 @@
 use std::fs::File;
 use std::io::Read;
-use std::rc::Rc;
 
+use crate::compiler::value::FunctionSig;
 use crate::compiler::{Error, Value};
-
-pub type FunctionSig = dyn Fn(&[Value]) -> Result<Value, Error>;
+use std::sync::Arc;
 
 pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
     Some(match function_name {
@@ -117,7 +116,7 @@ fn merge(args: &[Value]) -> Result<Value, Error> {
         let li = x.as_hashmap()?.clone();
         out.extend(li.into_iter());
     }
-    Ok(Value::HashMap(Rc::new(out)))
+    Ok(Value::HashMap(Arc::new(out)))
 }
 
 #[test]
@@ -134,7 +133,7 @@ fn func_merge() {
     )"#
         )
         .unwrap(),
-        Value::HashMap(Rc::new(hm))
+        Value::HashMap(Arc::new(hm))
     );
 
     assert_eq!(

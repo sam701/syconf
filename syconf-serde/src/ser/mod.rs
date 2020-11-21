@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use crate::Error;
 use serde::ser::{
@@ -8,6 +7,7 @@ use serde::ser::{
 };
 use serde::Serialize;
 
+use std::sync::Arc;
 use syconf_lib::Value;
 
 #[cfg(test)]
@@ -262,8 +262,8 @@ impl SerializeTupleVariant for Seq {
 }
 
 struct Map {
-    map: HashMap<Rc<str>, Value>,
-    key: Option<Rc<str>>,
+    map: HashMap<Arc<str>, Value>,
+    key: Option<Arc<str>>,
 }
 
 impl Map {
@@ -298,7 +298,7 @@ impl SerializeMap for Map {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        Ok(Value::HashMap(Rc::new(self.map)))
+        Ok(Value::HashMap(Arc::new(self.map)))
     }
 }
 

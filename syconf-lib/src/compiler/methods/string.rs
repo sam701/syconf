@@ -1,9 +1,9 @@
 use std::cmp::min;
-use std::rc::Rc;
 
 use crate::compiler::{Error, Value};
+use std::sync::Arc;
 
-pub type StringMethod = dyn Fn(&str, &[Value]) -> Result<Value, Error>;
+pub type StringMethod = dyn Fn(&str, &[Value]) -> Result<Value, Error> + Send + Sync;
 
 pub fn method(method_name: &str) -> Option<&'static StringMethod> {
     Some(match method_name {
@@ -21,19 +21,19 @@ pub fn method(method_name: &str) -> Option<&'static StringMethod> {
 fn parse_json(string: &str, args: &[Value]) -> Result<Value, Error> {
     check!(args.is_empty(), "'parse_json' does not take any arguments");
     let x = serde_json::from_str(string).map_err(|e| anyhow!("cannot parse JSON: {}", e))?;
-    Ok(Value::HashMap(Rc::new(x)))
+    Ok(Value::HashMap(Arc::new(x)))
 }
 
 fn parse_yaml(string: &str, args: &[Value]) -> Result<Value, Error> {
     check!(args.is_empty(), "'parse_yaml' does not take any arguments");
     let x = serde_yaml::from_str(string).map_err(|e| anyhow!("cannot parse YAML: {}", e))?;
-    Ok(Value::HashMap(Rc::new(x)))
+    Ok(Value::HashMap(Arc::new(x)))
 }
 
 fn parse_toml(string: &str, args: &[Value]) -> Result<Value, Error> {
     check!(args.is_empty(), "'parse_toml' does not take any arguments");
     let x = toml::de::from_str(string).map_err(|e| anyhow!("cannot parse TOML: {}", e))?;
-    Ok(Value::HashMap(Rc::new(x)))
+    Ok(Value::HashMap(Arc::new(x)))
 }
 
 fn trim(string: &str, args: &[Value]) -> Result<Value, Error> {

@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt;
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::compiler::context::Context;
 use crate::compiler::methods::hashmap::HashmapMethod;
@@ -12,7 +12,7 @@ use crate::compiler::{Error, ErrorWithLocation};
 
 use super::node::CodeNode;
 
-pub type ValueString = Rc<str>;
+pub type ValueString = Arc<str>;
 
 #[derive(Clone, Debug, PartialEq, serde::Deserialize)]
 #[serde(untagged)]
@@ -20,8 +20,8 @@ pub enum Value {
     Bool(bool),
     Int(i32),
     String(ValueString),
-    HashMap(Rc<HashMap<ValueString, Value>>),
-    List(Rc<[Value]>),
+    HashMap(Arc<HashMap<ValueString, Value>>),
+    List(Arc<[Value]>),
     #[serde(skip_deserializing)]
     Func(Func),
 }
@@ -118,7 +118,7 @@ impl fmt::Debug for Func {
 }
 
 impl Func {
-    pub fn new_builtin(func: &'static (dyn Fn(&[Value]) -> Result<Value, Error>)) -> Self {
+    pub fn new_builtin(func: &'static FunctionSig) -> Self {
         Self(FuncInner::BuiltInFunction(func))
     }
 
@@ -126,7 +126,7 @@ impl Func {
         Self(FuncInner::BuiltInMethod(method))
     }
 
-    pub fn new_user_defined(context: Context, definition: Rc<FunctionDefinition>) -> Self {
+    pub fn new_user_defined(context: Context, definition: Arc<FunctionDefinition>) -> Self {
         Self(FuncInner::UserDefined(UserDefinedFunction {
             context,
             definition,
@@ -142,17 +142,19 @@ impl Func {
     }
 }
 
+pub type FunctionSig = dyn Fn(&[Value]) -> Result<Value, Error> + Send + Sync;
+
 #[derive(Clone)]
 enum FuncInner {
-    BuiltInFunction(&'static dyn Fn(&[Value]) -> Result<Value, Error>),
+    BuiltInFunction(&'static FunctionSig),
     BuiltInMethod(Method),
     UserDefined(UserDefinedFunction),
 }
 
 #[derive(Clone)]
 pub enum Method {
-    HashMap(Rc<HashMap<ValueString, Value>>, &'static HashmapMethod),
-    List(Rc<[Value]>, &'static ListMethod),
+    HashMap(Arc<HashMap<ValueString, Value>>, &'static HashmapMethod),
+    List(Arc<[Value]>, &'static ListMethod),
     String(ValueString, &'static StringMethod),
 }
 
@@ -169,7 +171,7 @@ impl Method {
 #[derive(Debug, Clone)]
 pub struct UserDefinedFunction {
     context: Context,
-    definition: Rc<FunctionDefinition>,
+    definition: Arc<FunctionDefinition>,
 }
 
 impl UserDefinedFunction {

@@ -1,7 +1,7 @@
 use crate::compiler::value_extraction::ValueExtractor;
 use crate::compiler::{Error, Value};
 
-pub type ListMethod = dyn Fn(&[Value], &[Value]) -> Result<Value, Error>;
+pub type ListMethod = dyn Fn(&[Value], &[Value]) -> Result<Value, Error> + Send + Sync;
 
 pub fn method(name: &str) -> Option<&'static ListMethod> {
     Some(match name {
