@@ -1,9 +1,9 @@
 use nom::branch::alt;
 use nom::bytes::complete::*;
 use nom::character::complete::*;
-use nom::combinator::{map, map_res};
+use nom::combinator::{map, map_res, opt};
 use nom::multi::separated_list;
-use nom::sequence::{delimited, pair, separated_pair, tuple};
+use nom::sequence::{delimited, pair, separated_pair, terminated, tuple};
 use nom::{IResult, InputLength, InputTake};
 use nom_locate::position;
 
@@ -31,13 +31,27 @@ pub struct HashMapEntry<'a> {
 pub fn config_value(input: Span) -> IResult<Span, ConfigValue> {
     alt((
         map(boolean, ConfigValue::Bool),
-        map_res(digit1, |s: Span| {
-            s.fragment().parse::<i32>().map(ConfigValue::Int)
-        }),
+        map(number, ConfigValue::Int),
         map(hashmap, ConfigValue::HashMap),
         map(list, ConfigValue::List),
         map(string::parse, ConfigValue::String),
     ))(input)
+}
+
+fn number(input: Span) -> IResult<Span, i32> {
+    map(
+        pair(
+            map(opt(terminated(tag("-"), ml_space0)), |x| {
+                if x.is_some() {
+                    -1
+                } else {
+                    1
+                }
+            }),
+            map_res(digit1, |s: Span| s.fragment().parse::<i32>()),
+        ),
+        |(factor, num)| factor * num,
+    )(input)
 }
 
 fn boolean(input: Span) -> IResult<Span, bool> {

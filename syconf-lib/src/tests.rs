@@ -195,3 +195,18 @@ fn conditional_evaluation() {
         Value::Bool(true)
     );
 }
+
+#[test]
+fn negative_values() {
+    assert_eq!(
+        parse_string(
+            r#"
+            let a = -2
+            in
+            "${a}" == "-2"
+                  "#
+        )
+            .unwrap(),
+        Value::Bool(true)
+    );
+}
