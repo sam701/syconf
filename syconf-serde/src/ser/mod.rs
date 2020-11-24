@@ -8,7 +8,7 @@ use serde::ser::{
 use serde::Serialize;
 
 use std::sync::Arc;
-use syconf_lib::Value;
+use syconf_lib::{Number, Value};
 
 #[cfg(test)]
 mod tests;
@@ -35,43 +35,43 @@ impl serde::ser::Serializer for Serializer {
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
-        Ok(Value::Int(v as i32))
+        Ok(Value::Number(Number::Int(v as i64)))
     }
 
     fn serialize_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
-        Ok(Value::Int(v as i32))
+        Ok(Value::Number(Number::Int(v as i64)))
     }
 
     fn serialize_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-        Ok(Value::Int(v))
+        Ok(Value::Number(Number::Int(v as i64)))
     }
 
-    fn serialize_i64(self, _v: i64) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+    fn serialize_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
+        Ok(Value::Number(Number::Int(v)))
     }
 
     fn serialize_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-        Ok(Value::Int(v as i32))
+        Ok(Value::Number(Number::Int(v as i64)))
     }
 
     fn serialize_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
-        Ok(Value::Int(v as i32))
+        Ok(Value::Number(Number::Int(v as i64)))
     }
 
-    fn serialize_u32(self, _v: u32) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+    fn serialize_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
+        Ok(Value::Number(Number::Int(v as i64)))
     }
 
     fn serialize_u64(self, _v: u64) -> Result<Self::Ok, Self::Error> {
         unimplemented!()
     }
 
-    fn serialize_f32(self, _v: f32) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+    fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
+        Ok(Value::Number(Number::Float(v as f64)))
     }
 
-    fn serialize_f64(self, _v: f64) -> Result<Self::Ok, Self::Error> {
-        unimplemented!()
+    fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
+        Ok(Value::Number(Number::Float(v)))
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {

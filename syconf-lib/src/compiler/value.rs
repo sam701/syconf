@@ -11,6 +11,7 @@ use crate::compiler::node::{FunctionDefinition, NodeContent};
 use crate::compiler::{Error, ErrorWithLocation};
 
 use super::node::CodeNode;
+use crate::parser::number::Number;
 
 pub type ValueString = Arc<str>;
 
@@ -18,7 +19,7 @@ pub type ValueString = Arc<str>;
 #[serde(untagged)]
 pub enum Value {
     Bool(bool),
-    Int(i32),
+    Number(Number),
     String(ValueString),
     HashMap(Arc<HashMap<ValueString, Value>>),
     List(Arc<[Value]>),
@@ -41,11 +42,18 @@ impl Value {
         }
     }
 
-    pub fn as_int(&self) -> Result<i32, TypeMismatch> {
-        if let Value::Int(x) = self {
+    pub fn as_int(&self) -> Result<i64, TypeMismatch> {
+        if let Value::Number(Number::Int(x)) = self {
             Ok(*x)
         } else {
             Err(self.fail("int"))
+        }
+    }
+    pub fn as_float(&self) -> Result<f64, TypeMismatch> {
+        if let Value::Number(Number::Float(x)) = self {
+            Ok(*x)
+        } else {
+            Err(self.fail("float"))
         }
     }
     pub fn as_value_string(&self) -> Result<&ValueString, TypeMismatch> {
@@ -88,7 +96,8 @@ impl Value {
 impl PartialOrd for Value {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
-            (Value::Int(a), Value::Int(b)) => a.partial_cmp(b),
+            (Value::Number(Number::Int(a)), Value::Number(Number::Int(b))) => a.partial_cmp(b),
+            (Value::Number(Number::Float(a)), Value::Number(Number::Float(b))) => a.partial_cmp(b),
             (Value::String(a), Value::String(b)) => a.partial_cmp(b),
             (Value::Bool(a), Value::Bool(b)) => a.partial_cmp(b),
             _ => None,

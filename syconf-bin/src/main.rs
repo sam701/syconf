@@ -7,7 +7,7 @@ use clap::{App, Arg};
 use tracing::Level;
 
 use std::sync::Arc;
-use syconf_lib::Value;
+use syconf_lib::{Number, Value};
 
 fn main() {
     let matches = App::new("syconf")
@@ -90,7 +90,7 @@ fn main() {
 #[serde(untagged)]
 enum SerializableValue {
     Bool(bool),
-    Int(i32),
+    Number(Number),
     String(Arc<str>),
     HashMap(BTreeMap<Arc<str>, SerializableValue>),
     List(Arc<[SerializableValue]>),
@@ -99,7 +99,7 @@ enum SerializableValue {
 fn to_serializable(v: &Value) -> SerializableValue {
     match v {
         Value::Bool(x) => SerializableValue::Bool(*x),
-        Value::Int(x) => SerializableValue::Int(*x),
+        Value::Number(x) => SerializableValue::Number(x.clone()),
         Value::String(x) => SerializableValue::String(x.clone()),
         Value::HashMap(x) => SerializableValue::HashMap(
             x.iter()

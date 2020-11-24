@@ -78,7 +78,7 @@ fn func_filter() {
 
 fn len(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
     check!(args.is_empty(), "expects no arguments");
-    Ok(Value::Int(hm.len() as i32))
+    Ok(Value::Number(hm.len().into()))
 }
 
 #[test]
@@ -86,11 +86,11 @@ fn func_len() {
     assert_eq!(
         crate::parse_string(
             r#"
-        {aa:3, bb:4}.len()
+        {aa:3, bb:4}.len() == 2
     "#
         )
         .unwrap(),
-        Value::Int(2)
+        Value::Bool(true)
     )
 }
 

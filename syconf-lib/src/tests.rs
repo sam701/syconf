@@ -2,6 +2,7 @@ use crate::compiler::Value;
 use crate::parse_string;
 use std::collections::HashMap;
 
+use crate::parser::number::Number;
 use std::sync::Arc;
 
 #[test]
@@ -23,6 +24,10 @@ fn error_location() {
 fn math() {
     assert_eq!(
         parse_string("1 * 2 + 3 * 4 == 14").unwrap(),
+        Value::Bool(true)
+    );
+    assert_eq!(
+        parse_string("4.25 + 0.25 == 4.5").unwrap(),
         Value::Bool(true)
     );
 }
@@ -165,7 +170,7 @@ fn suffix_operator() {
 fn plain_config() {
     let mut hm = HashMap::new();
     hm.insert("name".into(), Value::String("winnie the pooh".into()));
-    hm.insert("age".into(), Value::Int(3));
+    hm.insert("age".into(), Value::Number(Number::Int(3)));
     assert_eq!(
         parse_string(
             r#"
@@ -206,7 +211,7 @@ fn negative_values() {
             "${a}" == "-2"
                   "#
         )
-            .unwrap(),
+        .unwrap(),
         Value::Bool(true)
     );
 }

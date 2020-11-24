@@ -7,7 +7,7 @@ use nom::IResult;
 use crate::parser::{expr_sum, ml_space0, Expr, ExprWithLocation, Span};
 use nom_locate::position;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Comparison<'a> {
     pub expr1: ExprWithLocation<'a>,
     pub expr2: ExprWithLocation<'a>,

@@ -27,7 +27,7 @@ fn filter(list: &[Value], args: &[Value]) -> Result<Value, Error> {
     let mut filtered = Vec::with_capacity(list.len());
     for (ix, val) in list.iter().enumerate() {
         let out = func
-            .call(&[Value::Int(ix as i32), val.clone()])?
+            .call(&[Value::Number(ix.into()), val.clone()])?
             .as_bool()?;
         if out {
             filtered.push(val.clone());
@@ -38,7 +38,7 @@ fn filter(list: &[Value], args: &[Value]) -> Result<Value, Error> {
 
 fn len(list: &[Value], args: &[Value]) -> Result<Value, Error> {
     check!(args.is_empty(), "expects no arguments");
-    Ok(Value::Int(list.len() as i32))
+    Ok(Value::Number(list.len().into()))
 }
 
 fn append(list: &[Value], args: &[Value]) -> Result<Value, Error> {

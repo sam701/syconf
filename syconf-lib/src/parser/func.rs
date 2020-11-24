@@ -6,7 +6,7 @@ use nom::IResult;
 
 use super::*;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct FuncDefinition<'a> {
     pub arguments: Vec<&'a str>,
     pub expression: Box<ExprWithLocation<'a>>,

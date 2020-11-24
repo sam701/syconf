@@ -6,7 +6,7 @@ use nom::IResult;
 
 use super::*;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Assignment<'a>(pub &'a str, pub ExprWithLocation<'a>);
 
 fn assignment(input: Span) -> IResult<Span, Assignment> {
@@ -22,7 +22,7 @@ fn assignment(input: Span) -> IResult<Span, Assignment> {
     )(input)
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct BlockExpr<'a> {
     pub local_assignments: Vec<Assignment<'a>>,
     pub expression: Box<ExprWithLocation<'a>>,

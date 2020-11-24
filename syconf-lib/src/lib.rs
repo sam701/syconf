@@ -12,6 +12,7 @@ use parser::*;
 
 pub use crate::compiler::ErrorWithLocation;
 pub use crate::compiler::{Func, TypeMismatch, Value, ValueString};
+pub use parser::Number;
 
 mod compiler;
 mod parser;

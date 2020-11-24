@@ -10,13 +10,13 @@ use crate::parser::leaf::expr_leaf;
 use crate::parser::{identifier, ml_space0, Expr, ExprWithLocation, Span};
 use nom_locate::position;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct SuffixExpr<'a> {
     pub base: ExprWithLocation<'a>,
     pub operator: SuffixOperator<'a>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum SuffixOperator<'a> {
     DotField(&'a str),
     FunctionApplication(Vec<ExprWithLocation<'a>>),

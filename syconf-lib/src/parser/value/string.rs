@@ -9,7 +9,7 @@ use nom::{FindSubstring, IResult, InputLength, InputTake, Needed, Slice};
 use crate::parser::expr::expr;
 use crate::parser::{ml_space0, ExprWithLocation, Span};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum ConfigString<'a> {
     Raw(&'a str),
     Interpolated(ExprWithLocation<'a>),

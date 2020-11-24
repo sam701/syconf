@@ -7,7 +7,7 @@ use nom::IResult;
 use crate::parser::{expr_comparison, ml_space0, ml_space1, Expr, ExprWithLocation, Span};
 use nom_locate::position;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Logical<'a> {
     And(ExprWithLocation<'a>, ExprWithLocation<'a>),
     Or(ExprWithLocation<'a>, ExprWithLocation<'a>),

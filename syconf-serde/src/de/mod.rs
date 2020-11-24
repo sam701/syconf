@@ -6,7 +6,7 @@ use serde::de::{DeserializeSeed, EnumAccess, MapAccess, SeqAccess, VariantAccess
 
 pub use func::Function;
 pub use syconf_lib::ErrorWithLocation;
-use syconf_lib::{Func, Value, ValueString};
+use syconf_lib::{Func, Number, Value, ValueString};
 
 use crate::Error;
 
@@ -37,7 +37,8 @@ impl<'de> serde::Deserializer<'de> for Deserializer {
     {
         match self.value {
             Value::Bool(x) => visitor.visit_bool(x),
-            Value::Int(x) => visitor.visit_i32(x),
+            Value::Number(Number::Int(x)) => visitor.visit_i64(x),
+            Value::Number(Number::Float(x)) => visitor.visit_f64(x),
             Value::String(x) => visitor.visit_string(x.to_string()),
             Value::HashMap(_) => self.deserialize_map(visitor),
             Value::List(_) => self.deserialize_seq(visitor),
@@ -59,46 +60,46 @@ impl<'de> serde::Deserializer<'de> for Deserializer {
         Err(Error::UnsupportedType)
     }
 
-    fn deserialize_i16<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
+    fn deserialize_i16<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::UnsupportedType)
+        visitor.visit_i16(self.value.as_int()? as i16)
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        visitor.visit_i32(self.value.as_int()?)
+        visitor.visit_i32(self.value.as_int()? as i32)
     }
 
-    fn deserialize_i64<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
+    fn deserialize_i64<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::UnsupportedType)
+        visitor.visit_i64(self.value.as_int()?)
     }
 
-    fn deserialize_u8<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
+    fn deserialize_u8<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::UnsupportedType)
+        visitor.visit_u8(self.value.as_int()? as u8)
     }
 
-    fn deserialize_u16<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
+    fn deserialize_u16<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::UnsupportedType)
+        visitor.visit_u16(self.value.as_int()? as u16)
     }
 
-    fn deserialize_u32<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
+    fn deserialize_u32<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::UnsupportedType)
+        visitor.visit_u32(self.value.as_int()? as u32)
     }
 
     fn deserialize_u64<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
@@ -108,18 +109,18 @@ impl<'de> serde::Deserializer<'de> for Deserializer {
         Err(Error::UnsupportedType)
     }
 
-    fn deserialize_f32<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
+    fn deserialize_f32<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::UnsupportedType)
+        visitor.visit_f32(self.value.as_float()? as f32)
     }
 
-    fn deserialize_f64<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
+    fn deserialize_f64<V>(self, visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>
     where
         V: Visitor<'de>,
     {
-        Err(Error::UnsupportedType)
+        visitor.visit_f64(self.value.as_float()?)
     }
 
     fn deserialize_char<V>(self, _visitor: V) -> Result<<V as Visitor<'de>>::Value, Self::Error>

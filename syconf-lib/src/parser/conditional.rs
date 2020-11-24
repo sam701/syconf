@@ -6,7 +6,7 @@ use nom::IResult;
 use crate::parser::expr::expr;
 use crate::parser::{ml_space1, ExprWithLocation, Span};
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Conditional<'a> {
     pub condition: ExprWithLocation<'a>,
     pub then_branch: ExprWithLocation<'a>,

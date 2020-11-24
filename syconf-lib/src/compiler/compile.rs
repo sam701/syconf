@@ -118,7 +118,7 @@ impl Compiler {
     fn config_value(&self, ctx: &Context, val: &ConfigValue) -> Result<NodeContent, Error> {
         match val {
             ConfigValue::Bool(x) => Ok(NodeContent::Resolved(Value::Bool(*x))),
-            ConfigValue::Int(v) => Ok(NodeContent::Resolved(Value::Int(*v))),
+            ConfigValue::Number(v) => Ok(NodeContent::Resolved(Value::Number(v.clone()))),
             ConfigValue::String(s) => self.string(ctx, s),
             ConfigValue::HashMap(hm) => hm
                 .iter()

@@ -1,28 +1,32 @@
 use nom::branch::alt;
 use nom::bytes::complete::*;
-use nom::character::complete::*;
-use nom::combinator::{map, map_res, opt};
+
+use nom::combinator::map;
+
 use nom::multi::separated_list;
-use nom::sequence::{delimited, pair, separated_pair, terminated, tuple};
+
+use nom::sequence::{delimited, pair, separated_pair, tuple};
 use nom::{IResult, InputLength, InputTake};
 use nom_locate::position;
 
+pub use number::Number;
 use string::ConfigString;
 
 use super::*;
 
+pub mod number;
 pub mod string;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum ConfigValue<'a> {
     Bool(bool),
-    Int(i32),
+    Number(Number),
     String(Vec<ConfigString<'a>>),
     HashMap(Vec<HashMapEntry<'a>>),
     List(Vec<ExprWithLocation<'a>>),
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct HashMapEntry<'a> {
     pub key: ExprWithLocation<'a>,
     pub value: ExprWithLocation<'a>,
@@ -31,27 +35,11 @@ pub struct HashMapEntry<'a> {
 pub fn config_value(input: Span) -> IResult<Span, ConfigValue> {
     alt((
         map(boolean, ConfigValue::Bool),
-        map(number, ConfigValue::Int),
+        map(number::number, ConfigValue::Number),
         map(hashmap, ConfigValue::HashMap),
         map(list, ConfigValue::List),
         map(string::parse, ConfigValue::String),
     ))(input)
-}
-
-fn number(input: Span) -> IResult<Span, i32> {
-    map(
-        pair(
-            map(opt(terminated(tag("-"), ml_space0)), |x| {
-                if x.is_some() {
-                    -1
-                } else {
-                    1
-                }
-            }),
-            map_res(digit1, |s: Span| s.fragment().parse::<i32>()),
-        ),
-        |(factor, num)| factor * num,
-    )(input)
 }
 
 fn boolean(input: Span) -> IResult<Span, bool> {

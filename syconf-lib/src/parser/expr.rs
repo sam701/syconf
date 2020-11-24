@@ -10,7 +10,7 @@ use crate::parser::conditional::Conditional;
 
 use super::*;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct ExprWithLocation<'a> {
     pub inner: Expr<'a>,
     pub location: Span<'a>,
@@ -18,7 +18,7 @@ pub struct ExprWithLocation<'a> {
 
 // TODO: add special characters in strings, i.e. \n, \t
 // TODO: add float type
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Expr<'a> {
     Value(ConfigValue<'a>),
     Block(BlockExpr<'a>),

@@ -7,7 +7,7 @@ use nom::IResult;
 use super::*;
 use nom_locate::position;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct MathOperation<'a> {
     pub expr1: ExprWithLocation<'a>,
     pub expr2: ExprWithLocation<'a>,

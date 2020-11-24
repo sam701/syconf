@@ -4,10 +4,11 @@ use serde::Deserialize;
 
 use crate::{from_str, Function};
 
-#[derive(Deserialize, Eq, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug)]
 struct Abc {
     name: String,
     age: i32,
+    age2: f64,
     cool: bool,
     nicknames: Vec<String>,
     labels: HashMap<String, String>,
@@ -19,17 +20,17 @@ struct Abc {
     option_some: Option<String>,
 }
 
-#[derive(Deserialize, Eq, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug)]
 struct Newtype(String);
 
-#[derive(Deserialize, Eq, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 enum UntaggedEnum {
     String1(String),
     String2 { content: String },
 }
 
-#[derive(Deserialize, Eq, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug)]
 #[serde(tag = "type", content = "abc")]
 enum InternallyTaggedEnum {
     String0,
@@ -37,7 +38,7 @@ enum InternallyTaggedEnum {
     String2 { content: String },
 }
 
-#[derive(Deserialize, Eq, PartialEq, Debug)]
+#[derive(Deserialize, PartialEq, Debug)]
 enum ExternallyTaggedEnum {
     String0,
     String1(String),
@@ -54,6 +55,7 @@ fn deserialize_struct() {
         {
             name: name
             age: 3
+            age2: 3.14
             cool: true
             nicknames: ['winnie']
             labels: {
@@ -75,6 +77,7 @@ fn deserialize_struct() {
         Abc {
             name: "pooh".to_owned(),
             age: 3,
+            age2: 3.14,
             cool: true,
             nicknames: vec!["winnie".to_owned()],
             labels,

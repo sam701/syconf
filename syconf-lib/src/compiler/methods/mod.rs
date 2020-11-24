@@ -18,8 +18,8 @@ pub fn index(args: &[Value]) -> Result<Value, Error> {
             }
         }
         Value::List(list) => match &args[1] {
-            Value::Int(key) => list
-                .get(*key as usize)
+            Value::Number(key) => list
+                .get(key.as_usize()?)
                 .map(Clone::clone)
                 .ok_or_else(|| "No such element".into()),
             Value::String(key) => list::method(key)

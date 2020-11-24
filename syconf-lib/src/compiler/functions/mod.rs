@@ -53,7 +53,7 @@ pub fn concat_strings(args: &[Value]) -> Result<Value, Error> {
     for s in args {
         match s {
             Value::String(s) => out.push_str(s),
-            Value::Int(x) => out.push_str(x.to_string().as_str()),
+            Value::Number(x) => out.push_str(x.to_string().as_str()),
             Value::Bool(x) => out.push_str(x.to_string().as_str()),
             _ => return Err("Cannot format a non-primitive type".into()),
         }
@@ -121,9 +121,11 @@ fn merge(args: &[Value]) -> Result<Value, Error> {
 
 #[test]
 fn func_merge() {
+    use crate::Number;
+
     let mut hm = std::collections::HashMap::new();
     hm.insert("name".into(), Value::String("alexei".into()));
-    hm.insert("age".into(), Value::Int(40));
+    hm.insert("age".into(), Value::Number(Number::Int(40)));
     assert_eq!(
         crate::parse_string(
             r#"merge(
@@ -158,7 +160,7 @@ fn fold(args: &[Value]) -> Result<Value, Error> {
         Value::List(list) => {
             let mut out = args[0].clone();
             for (ix, val) in list.iter().enumerate() {
-                let args = &[out.clone(), Value::Int(ix as i32), val.clone()];
+                let args = &[out.clone(), Value::Number(ix.into()), val.clone()];
                 out = func.call(args)?;
             }
             Ok(out)
@@ -177,9 +179,11 @@ fn fold(args: &[Value]) -> Result<Value, Error> {
 
 #[test]
 fn func_fold() {
+    use crate::Number;
+
     assert_eq!(
         crate::parse_string(r#"fold(0, (acc, ix, val) => acc + val, [1,2,3])"#).unwrap(),
-        Value::Int(6)
+        Value::Number(Number::Int(6))
     );
     assert_eq!(
         crate::parse_string(
@@ -190,6 +194,6 @@ fn func_fold() {
     })"#
         )
         .unwrap(),
-        Value::Int(6)
+        Value::Number(Number::Int(6))
     );
 }
