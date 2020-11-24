@@ -1,3 +1,4 @@
+use crate::compiler::value::{TypeMismatch, ValueString};
 use crate::compiler::value_extraction::ValueExtractor;
 use crate::compiler::{Error, Value};
 
@@ -9,6 +10,7 @@ pub fn method(name: &str) -> Option<&'static ListMethod> {
         "filter" => &filter,
         "len" => &len,
         "append" => &append,
+        "join" => &join,
         _ => return None,
     })
 }
@@ -47,4 +49,27 @@ fn append(list: &[Value], args: &[Value]) -> Result<Value, Error> {
         a.push(x.clone());
     }
     Ok(Value::List(a.into()))
+}
+
+fn join(list: &[Value], args: &[Value]) -> Result<Value, Error> {
+    check!(args.len() == 1, "'join' takes exactly one argument");
+    let strings_to_join = list
+        .iter()
+        .map(|x| x.as_value_string().map(|x| x.clone()))
+        .collect::<Result<Vec<ValueString>, TypeMismatch>>()?;
+    let join_by = args[0].as_value_string()?;
+    Ok(Value::String(strings_to_join.join(join_by).into()))
+}
+
+#[test]
+fn join_list_by() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+            ["hello", "world"].join(" ") == "hello world"
+            "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    )
 }
