@@ -1,33 +1,51 @@
 let cfg = import "./config.sy"
 
-let runner_map = {
-    linux: "ubuntu-latest"
-    macos: "macos-latest"
+let linux_target = "x86_64-unknown-linux-musl"
+let platform_cfg = {
+    linux: {
+        runner: "ubuntu-latest"
+        toolchain: {
+            toolchain: "stable"
+            target: linux_target
+        }
+        build_args: "--target ${linux_target}"
+        binary_dir: "target/${linux_target}/release"
+    }
+    macos: {
+        runner: "macos-latest"
+        toolchain: {toolchain: "stable"}
+        build_args: ""
+        binary_dir: "target/release"
+    }
 }
 
 in
 
-(os) => {
-    "runs-on": runner_map[os]
-    steps: [
-        {uses: "actions/checkout@v2"},
-        {
-            uses: "actions-rs/toolchain@v1",
-            with: {toolchain: "stable"}
-        },
-        {
-            run: "
-            cargo build --release
-            cd target/release
-            zip ${cfg.bin_name}-${os}.zip ${cfg.bin_name}
-            ".unindent().trim()
-        },
-        {
-            uses: "actions/upload-artifact@v2",
-            with: {
-                name: "${os}-bin"
-                path: "target/release/${cfg.bin_name}-${os}.zip"
+(platform) => {
+    let pc = platform_cfg[platform]
+    in
+    {
+        "runs-on": pc.runner
+        steps: [
+            {uses: "actions/checkout@v2"},
+            {
+                uses: "actions-rs/toolchain@v1",
+                with: pc.toolchain
+            },
+            {
+                run: "
+                cargo build --release ${pc.build_args}
+                cd ${pc.binary_dir}
+                zip ${cfg.bin_name}-${platform}.zip ${cfg.bin_name}
+                ".unindent().trim()
+            },
+            {
+                uses: "actions/upload-artifact@v2",
+                with: {
+                    name: "${platform}-bin"
+                    path: "${pc.binary_dir}/${cfg.bin_name}-${platform}.zip"
+                }
             }
-        }
-    ]
+        ]
+    }
 }

@@ -2,7 +2,7 @@ use nom::branch::alt;
 use nom::bytes::complete::{tag, take_while};
 use nom::combinator::{all_consuming, map};
 use nom::error::ErrorKind;
-use nom::multi::many1;
+use nom::multi::many0;
 use nom::sequence::{delimited, pair};
 use nom::{FindSubstring, IResult, InputLength, InputTake, Needed, Slice};
 
@@ -30,7 +30,7 @@ pub fn parse(input: Span) -> IResult<Span, Vec<ConfigString>> {
                 if quote.fragment() == &"'" {
                     vec![ConfigString::Raw(&input.fragment()[..x])]
                 } else {
-                    all_consuming(many1(interpolated_string))(input.slice(..x))?.1
+                    all_consuming(many0(interpolated_string))(input.slice(..x))?.1
                 },
             ))
         }

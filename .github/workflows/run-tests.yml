@@ -4,6 +4,7 @@ on:
     paths:
       - 'syconf-lib/**'
       - 'syconf-bin/**'
+      - 'syconf-serde/**'
       - 'Cargo.*'
     pull_request: {}
     branches:
@@ -16,6 +17,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          components: clippy, rustfmt
       - run: cargo test
       - run: cargo fmt --all && [[ $(git status -s | wc -l | tr -d ' ') == 0 ]]
       - run: cargo fix --workspace && [[ $(git status -s | wc -l | tr -d ' ') == 0 ]]

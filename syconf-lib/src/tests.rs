@@ -50,6 +50,19 @@ fn interpolated_string() {
 }
 
 #[test]
+fn empty_string() {
+    assert_eq!(
+        parse_string(
+            r#"
+    "" == ''
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    );
+}
+
+#[test]
 fn hashmap() {
     assert_eq!(
         parse_string(

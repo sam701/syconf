@@ -6,12 +6,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
+          target: x86_64-unknown-linux-musl
           toolchain: stable
-      - run: "cargo build --release\ncd target/release\nzip syconf-linux.zip syconf"
+      - run: "cargo build --release --target x86_64-unknown-linux-musl\ncd target/x86_64-unknown-linux-musl/release\nzip syconf-linux.zip syconf"
       - uses: actions/upload-artifact@v2
         with:
           name: linux-bin
-          path: target/release/syconf-linux.zip
+          path: target/x86_64-unknown-linux-musl/release/syconf-linux.zip
   build-macos:
     runs-on: macos-latest
     steps:
@@ -19,7 +20,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      - run: "cargo build --release\ncd target/release\nzip syconf-macos.zip syconf"
+      - run: "cargo build --release \ncd target/release\nzip syconf-macos.zip syconf"
       - uses: actions/upload-artifact@v2
         with:
           name: macos-bin
