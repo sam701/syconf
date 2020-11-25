@@ -2,11 +2,11 @@ use std::collections::BTreeMap;
 use std::fs::File;
 use std::io;
 use std::io::{Read, Write};
+use std::sync::Arc;
 
 use clap::{App, Arg};
 use tracing::Level;
 
-use std::sync::Arc;
 use syconf_lib::{Number, Value};
 
 fn main() {
@@ -41,7 +41,7 @@ fn main() {
                 .help("Output format")
                 .takes_value(true)
                 .value_name("FORMAT")
-                .possible_values(&["json", "yaml", "toml"])
+                .possible_values(&["json", "yaml", "yaml-stream", "toml"])
                 .default_value("json"),
         )
         .get_matches();
@@ -73,6 +73,7 @@ fn main() {
     let ser = match matches.value_of("format").unwrap() {
         "json" => serde_json::to_string(&val).unwrap(),
         "yaml" => serde_yaml::to_string(&val).unwrap(),
+        "yaml-stream" => to_yaml_stream(&val),
         "toml" => toml::ser::to_string(&val).unwrap(),
         _ => unreachable!(),
     };
@@ -83,6 +84,17 @@ fn main() {
             .unwrap()
             .write_all(ser.as_bytes())
             .unwrap(),
+    }
+}
+
+fn to_yaml_stream(val: &SerializableValue) -> String {
+    match val {
+        SerializableValue::List(list) => list
+            .iter()
+            .map(|x| serde_yaml::to_string(x).unwrap())
+            .collect::<Vec<String>>()
+            .join("\n\n"),
+        v => serde_yaml::to_string(v).unwrap(),
     }
 }
 
