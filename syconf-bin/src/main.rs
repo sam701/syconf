@@ -41,7 +41,7 @@ fn main() {
                 .help("Output format")
                 .takes_value(true)
                 .value_name("FORMAT")
-                .possible_values(&["json", "yaml", "yaml-stream", "toml"])
+                .possible_values(&["json", "yaml", "yaml-stream", "toml", "text"])
                 .default_value("json"),
         )
         .get_matches();
@@ -75,6 +75,14 @@ fn main() {
         "yaml" => serde_yaml::to_string(&val).unwrap(),
         "yaml-stream" => to_yaml_stream(&val),
         "toml" => toml::ser::to_string(&val).unwrap(),
+        "text" => {
+            if let SerializableValue::String(s) = val {
+                s.to_string()
+            } else {
+                eprintln!("ERROR: resulting error is not a string");
+                std::process::exit(1);
+            }
+        }
         _ => unreachable!(),
     };
 
