@@ -1,12 +1,11 @@
 use std::cmp::min;
+use std::sync::Arc;
 
 use nom::error::ErrorKind;
 use nom::{Err, InputLength};
 
 use crate::compiler::value::TypeMismatch;
 use crate::parser::Span;
-
-use std::sync::Arc;
 
 pub type Error = ErrorWithLocation;
 
@@ -18,13 +17,11 @@ pub struct ErrorWithLocation {
 
 impl std::fmt::Display for ErrorWithLocation {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = self
-            .location
-            .as_ref()
-            .map(|l| format!("{}", l))
-            .unwrap_or_else(|| "somewhere".to_string());
+        if let Some(loc) = self.location.as_ref() {
+            write!(f, "{}: ", &loc)?;
+        }
 
-        write!(f, "{}: {}", &s, self.message)
+        write!(f, "{}", self.message)
     }
 }
 

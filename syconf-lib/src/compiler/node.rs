@@ -1,10 +1,11 @@
+use std::sync::Arc;
+
 use crate::compiler::error::Location;
 use crate::compiler::value::{Func, ValueString};
 use crate::compiler::*;
 
 use super::context::Context;
 use super::value::Value;
-use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct FunctionDefinition {
@@ -115,7 +116,7 @@ impl CodeNode {
                     .map_or(Ok(None), |v| v.map(Some))?;
                 match (&function.resolve(ctx)?, &opt_args) {
                     (Value::Func(func), Some(args)) => {
-                        func.call(args.as_slice()) //.map_err(|e| self.add_location(e))
+                        func.call(args.as_slice()).map_err(|e| self.add_location(e))
                     }
                     (_, Some(_)) => Err(self.err("value is not a function".to_string())),
                     (x, None) => Ok(x.clone()),
@@ -128,6 +129,17 @@ impl CodeNode {
         ErrorWithLocation {
             message,
             location: self.0.location.clone(),
+        }
+    }
+
+    fn add_location(&self, e: ErrorWithLocation) -> ErrorWithLocation {
+        if e.location.is_some() {
+            e
+        } else {
+            ErrorWithLocation {
+                location: self.0.location.clone(),
+                message: e.message,
+            }
         }
     }
 }

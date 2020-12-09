@@ -18,6 +18,18 @@ fn error_location() {
     .unwrap();
     let line_no = err.location.unwrap().line;
     assert_eq!(line_no, 2);
+
+    let err = parse_string(
+        r#"
+        let name = "abc"
+        in
+        "Name: " + name
+    "#,
+    )
+    .err()
+    .unwrap();
+    let line_no = err.location.unwrap().line;
+    assert_eq!(line_no, 4);
 }
 
 #[test]

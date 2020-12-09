@@ -152,7 +152,7 @@ impl Compiler {
         Ok(NodeContent::FunctionCall {
             function: builtin_func_node(&super::functions::concat_strings),
             arguments: Some(kids),
-            name: "concat".to_string(),
+            name: "string_concat".to_string(),
         })
     }
 
