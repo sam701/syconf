@@ -19,7 +19,7 @@
 * `str.parse_yaml()` - TODO
 * `str.parse_toml()` - TODO
 * `str.trim()` - TODO
-* `str.unindent()` - TODO
+* `str.script()` - TODO
 
 
 ## Functions

@@ -33,11 +33,10 @@ in
                 with: pc.toolchain
             },
             {
-                run: "
-                cargo build --release ${pc.build_args}
+                run: "cargo build --release ${pc.build_args}
                 cd ${pc.binary_dir}
                 zip ${cfg.bin_name}-${platform}.zip ${cfg.bin_name}
-                ".unindent().trim()
+                ".script()
             },
             {
                 uses: "actions/upload-artifact@v2",

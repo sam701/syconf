@@ -1,7 +1,7 @@
 use std::cmp::min;
+use std::sync::Arc;
 
 use crate::compiler::{Error, Value};
-use std::sync::Arc;
 
 pub type StringMethod = dyn Fn(&str, &[Value]) -> Result<Value, Error> + Send + Sync;
 
@@ -13,7 +13,8 @@ pub fn method(method_name: &str) -> Option<&'static StringMethod> {
         "trim" => &trim,
         "split" => &split,
         "lines" => &lines,
-        "unindent" => &unindent,
+        "script" => &script,
+        "oneline" => &oneline,
         _ => return None,
     })
 }
@@ -80,62 +81,136 @@ fn split_string() {
     )
 }
 
-fn unindent(string: &str, args: &[Value]) -> Result<Value, Error> {
-    check!(args.is_empty(), "'unindent' does not take any arguments");
-    let mut prefixed_whitespaces: Vec<&str> = string
+#[inline]
+fn starts_with_whitespace(s: &str) -> bool {
+    s.chars().next().map(|x| x.is_whitespace()).unwrap_or(false)
+}
+
+fn unindent(string: &str) -> Vec<&str> {
+    let indent_len = string
+        .trim_end()
         .lines()
+        .enumerate()
+        // consider the first line only if it is not empty and starts with spaces
+        .filter(|(ix, s)| *ix > 0 || starts_with_whitespace(s))
+        .map(|(_, s)| s)
         .filter(|x| !x.trim().is_empty())
-        .map(|x| &x[..x.find(|s| !char::is_whitespace(s)).unwrap_or(0)])
-        .collect();
-    prefixed_whitespaces.sort_unstable();
+        .map(|x| x.find(|s| !char::is_whitespace(s)).unwrap_or(0))
+        .min()
+        .unwrap_or(0);
 
-    let prefix_len = match prefixed_whitespaces.len() {
-        0 => return Ok(Value::String(string.into())),
-        1 => prefixed_whitespaces[0].len(),
-        _ => {
-            let first: Vec<char> = prefixed_whitespaces[0].chars().collect();
-            let last: Vec<char> = prefixed_whitespaces.last().unwrap().chars().collect();
-            let mut cnt = 0;
-            for ix in 0..min(first.len(), last.len()) {
-                if first[ix] == last[ix] {
-                    cnt += 1;
-                }
-            }
-            cnt
-        }
-    };
-
-    let out = string
+    let mut prefix_trimmed = false;
+    string
+        .trim_end()
         .lines()
-        .map(|s| {
-            if s.trim().is_empty() {
-                ""
+        .enumerate()
+        .map(|(ix, s)| {
+            if ix > 0 || starts_with_whitespace(s) {
+                &s[min(s.len(), indent_len)..]
             } else {
-                &s[prefix_len..]
+                s
             }
         })
-        .collect::<Vec<&str>>()
-        .join("\n");
+        .map(|s| s.trim_end())
+        .filter(|s| {
+            prefix_trimmed
+                || if s.is_empty() {
+                    false
+                } else {
+                    prefix_trimmed = true;
+                    true
+                }
+        })
+        .collect()
+}
+
+#[test]
+fn test_unindent() {
+    assert_eq!(
+        unindent("aa \n  bb   \n  cc\n\n   "),
+        vec!["aa", "bb", "cc"]
+    );
+    assert_eq!(
+        unindent(" aa \n  bb   \n  cc\n\n   "),
+        vec!["aa", " bb", " cc"]
+    );
+    assert_eq!(
+        unindent("  aa \n  bb   \n  cc\n\n   "),
+        vec!["aa", "bb", "cc"]
+    );
+    assert_eq!(
+        unindent("\n\n  aa \n  bb   \n  cc\n\n   "),
+        vec!["aa", "bb", "cc"]
+    );
+    let empty: Vec<&str> = vec![];
+    assert_eq!(unindent(""), empty);
+}
+
+fn script(string: &str, args: &[Value]) -> Result<Value, Error> {
+    check!(args.is_empty(), "'script' does not take any arguments");
+    let out = unindent(string).join("\n");
 
     Ok(Value::String(out.into()))
 }
 
 #[test]
-fn func_unindent() {
+fn string_script() {
     assert_eq!(
         crate::parse_string(
             r#"
-        "
+            "
 
             abc
-        def
-                    ghk
-        ".unindent()
+                def
+            abc
+
+            ".script() == "abc
+    def
+abc"
     "#
         )
         .unwrap(),
-        Value::String("\n\n    abc\ndef\n            ghk\n".into())
-    )
+        Value::Bool(true)
+    );
+    assert_eq!(
+        crate::parse_string(
+            r#"
+            "".script() == ""
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    );
+}
+
+fn oneline(string: &str, args: &[Value]) -> Result<Value, Error> {
+    check!(args.is_empty(), "'oneline' does not take any arguments");
+    let out: Vec<&str> = string
+        .lines()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+        .collect();
+
+    Ok(Value::String(out.join(" ").into()))
+}
+
+#[test]
+fn string_oneline() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+            "
+
+            abc
+                def
+            abc
+
+            ".oneline() == "abc def abc"
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    );
 }
 
 fn lines(string: &str, args: &[Value]) -> Result<Value, Error> {
