@@ -1,9 +1,10 @@
 use std::fs::File;
 use std::io::Read;
+use std::process::Command;
+use std::sync::Arc;
 
 use crate::compiler::value::FunctionSig;
 use crate::compiler::{Error, Value};
-use std::sync::Arc;
 
 pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
     Some(match function_name {
@@ -12,6 +13,7 @@ pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
         "concat" => &concat,
         "merge" => &merge,
         "fold" => &fold,
+        "shell" => &shell,
         _ => return None,
     })
 }
@@ -195,5 +197,37 @@ fn func_fold() {
         )
         .unwrap(),
         Value::Number(Number::Int(6))
+    );
+}
+
+fn shell(args: &[Value]) -> Result<Value, Error> {
+    check!(args.len() == 1, "SHELL requires a single string argument");
+
+    let mut cmd = Command::new("sh");
+    cmd.arg("-c").arg(args[0].as_value_string()?.as_ref());
+    let out = cmd
+        .output()
+        .map_err(|e| format!("cannot execute shell script: {}", e))?;
+    check!(
+        out.status.success(),
+        "Command exited with status {}",
+        out.status.code().unwrap_or(-1)
+    );
+
+    let s =
+        String::from_utf8(out.stdout).map_err(|_| "shell script did not return UTF-8 string")?;
+    Ok(Value::String(s.into()))
+}
+
+#[test]
+fn test_shell() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+    shell("echo abc").trim() == "abc"
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
     );
 }
