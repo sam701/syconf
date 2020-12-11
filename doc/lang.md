@@ -13,6 +13,8 @@
 * `hm.filter(func)` - TODO
 * `hm.len()` - TODO
 * `hm.insert(key, value)` - TODO
+* `hm.merge(another)` - TODO
+* `hm.drop(path)` - TODO
 
 ### String Methods
 * `str.parse_json()` - TODO
@@ -26,5 +28,4 @@
 * `read_file(file_name)` - TODO
 * `getenv(name, default_value)` - TODO
 * `concat(array1, array2)` - TODO
-* `merge(hashmap1, hashmap2)` - TODO
 * `fold(initial_value, func, obj)` - TODO

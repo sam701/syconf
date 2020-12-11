@@ -15,6 +15,7 @@ pub fn method(name: &str) -> Option<&'static HashmapMethod> {
         "len" => &len,
         "insert" => &insert,
         "merge" => &merge,
+        "drop" => &drop,
         _ => return None,
     })
 }
@@ -184,6 +185,72 @@ fn test_merge() {
             }
             n1: 3
             n2: 5
+        }
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    )
+}
+
+fn drop(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
+    check!(args.len() == 1, "expects one string argument");
+    let mut out = hm.clone();
+    let path: Vec<&str> = args[0].as_value_string()?.split('.').collect();
+    out = drop_raw(out, path.as_slice())?;
+
+    Ok(Value::HashMap(Arc::new(out)))
+}
+
+fn drop_raw(
+    mut hm: HashMap<ValueString, Value>,
+    path: &[&str],
+) -> Result<HashMap<ValueString, Value>, Error> {
+    match path.len() {
+        0 => {}
+        1 => {
+            hm.remove(path[0]);
+        }
+        _ => {
+            let key = path[0];
+            match hm.get(key) {
+                Some(Value::HashMap(hm2)) => {
+                    let cloned = hm2.as_ref().clone();
+                    hm.insert(
+                        key.into(),
+                        Value::HashMap(Arc::new(drop_raw(cloned, &path[1..])?)),
+                    );
+                }
+                Some(_) => {
+                    return Err(
+                        "Cannot drop hashmap key, because the object is not a hashmap".into(),
+                    );
+                }
+                None => {}
+            }
+        }
+    }
+    Ok(hm)
+}
+
+#[test]
+fn test_drop() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+        {
+            a: {
+                b: {
+                    c: 10
+                    d: 20
+                }
+            }
+        }.drop("a.b.d") == {
+            a: {
+                b: {
+                    c: 10
+                }
+            }
         }
     "#
         )
