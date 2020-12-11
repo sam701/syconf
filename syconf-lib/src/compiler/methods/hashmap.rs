@@ -1,9 +1,9 @@
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::compiler::value::ValueString;
 use crate::compiler::value_extraction::ValueExtractor;
 use crate::compiler::{Error, Value};
-use std::sync::Arc;
 
 pub type HashmapMethod =
     dyn Fn(&HashMap<ValueString, Value>, &[Value]) -> Result<Value, Error> + Send + Sync;
@@ -14,6 +14,7 @@ pub fn method(name: &str) -> Option<&'static HashmapMethod> {
         "filter" => &filter,
         "len" => &len,
         "insert" => &insert,
+        "merge" => &merge,
         _ => return None,
     })
 }
@@ -122,6 +123,68 @@ fn key_expr() {
         let x = 3
         in
         {"abc${x}": 33} == {abc3:33}
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    )
+}
+
+fn merge(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
+    check!(args.len() == 1, "expects one hashmap as argument");
+    let mut out = hm.clone();
+    let other = args[0].as_hashmap()?;
+    out = merge_raw(out, other);
+
+    Ok(Value::HashMap(Arc::new(out)))
+}
+
+fn merge_raw(
+    mut dest: HashMap<ValueString, Value>,
+    src: &HashMap<ValueString, Value>,
+) -> HashMap<ValueString, Value> {
+    for (k, v) in src {
+        let fv = match (dest.get(k), v) {
+            (Some(Value::HashMap(hm1)), Value::HashMap(hm2)) => {
+                Value::HashMap(Arc::new(merge_raw(hm1.as_ref().clone(), hm2.as_ref())))
+            }
+            _ => v.clone(),
+        };
+        dest.insert(k.clone(), fv);
+    }
+    dest
+}
+
+#[test]
+fn test_merge() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+        {
+            a: {
+                b: {
+                    c: 10
+                }
+            }
+            n1: 3
+            n2: 4
+        }.merge({
+            a: {
+                b: {
+                    d: 20
+                }
+            }
+            n2: 5
+        }) == {
+            a: {
+                b: {
+                    c: 10
+                    d: 20
+                }
+            }
+            n1: 3
+            n2: 5
+        }
     "#
         )
         .unwrap(),

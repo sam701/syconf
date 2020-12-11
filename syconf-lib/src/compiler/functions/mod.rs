@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::Read;
 use std::process::Command;
-use std::sync::Arc;
 
 use crate::compiler::value::FunctionSig;
 use crate::compiler::{Error, Value};
@@ -11,7 +10,6 @@ pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
         "read_file" => &read_file,
         "getenv" => &getenv,
         "concat" => &concat,
-        "merge" => &merge,
         "fold" => &fold,
         "shell" => &shell,
         _ => return None,
@@ -95,59 +93,6 @@ fn concat(args: &[Value]) -> Result<Value, Error> {
 fn func_concat() {
     assert_eq!(
         crate::parse_string(r#"concat([1],[2,3],[4]) == [1, 2, 3, 4]"#).unwrap(),
-        Value::Bool(true)
-    );
-}
-
-fn merge(args: &[Value]) -> Result<Value, Error> {
-    check!(
-        !args.is_empty(),
-        "Merge requires at least one argument as a hashmap or a list of hashmaps"
-    );
-    let hm_list = if let Value::List(list) = &args[0] {
-        check!(
-            args.len() == 1,
-            "Merge expects either multiple hashmaps or a single list of hashmaps"
-        );
-        list.as_ref()
-    } else {
-        args
-    };
-    let mut out = hm_list[0].as_hashmap()?.clone();
-    for x in &hm_list[1..] {
-        let li = x.as_hashmap()?.clone();
-        out.extend(li.into_iter());
-    }
-    Ok(Value::HashMap(Arc::new(out)))
-}
-
-#[test]
-fn func_merge() {
-    use crate::Number;
-
-    let mut hm = std::collections::HashMap::new();
-    hm.insert("name".into(), Value::String("alexei".into()));
-    hm.insert("age".into(), Value::Number(Number::Int(40)));
-    assert_eq!(
-        crate::parse_string(
-            r#"merge(
-        {name: "john"},
-        {name: "alexei"},
-        {age: 40},
-    )"#
-        )
-        .unwrap(),
-        Value::HashMap(Arc::new(hm))
-    );
-
-    assert_eq!(
-        crate::parse_string(
-            r#"merge([
-        {name: "john"},
-        {age: 40},
-    ]) == {name: "john", age: 40}"#
-        )
-        .unwrap(),
         Value::Bool(true)
     );
 }
