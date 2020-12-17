@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::combinator::{map, opt};
+use nom::combinator::{cut, map, opt};
 use nom::sequence::{pair, tuple};
 use nom::IResult;
 
@@ -45,7 +45,7 @@ pub fn expr_comparison(input: Span) -> IResult<Span, ExprWithLocation> {
                     )),
                     |(_, rl, op, _)| (rl, op),
                 ),
-                expr_comparison,
+                cut(expr_comparison),
             )),
         )),
         |(expr1, opt)| match opt {

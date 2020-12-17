@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::combinator::{map, opt};
+use nom::combinator::{cut, map, opt};
 use nom::sequence::{pair, tuple};
 use nom::IResult;
 
@@ -27,7 +27,7 @@ fn binary(input: Span) -> IResult<Span, ExprWithLocation> {
                     tuple((ml_space0, position, alt((tag("and"), tag("or"))), ml_space0)),
                     |(_, rl, op, _)| (rl, op),
                 ),
-                expr_logical,
+                cut(expr_logical),
             )),
         )),
         |(expr1, opt)| match opt {

@@ -35,7 +35,7 @@ pub fn block_body(input: Span) -> IResult<Span, BlockExpr> {
             pair(
                 pair(
                     separated_nonempty_list(ml_space1, assignment),
-                    tuple((ml_space1, tag("in"), ml_space1)),
+                    cut(tuple((ml_space1, tag("in"), ml_space1))),
                 ),
                 expr,
             ),

@@ -1,5 +1,5 @@
 use nom::bytes::complete::tag;
-use nom::combinator::map;
+use nom::combinator::{cut, map};
 use nom::sequence::{pair, tuple};
 use nom::IResult;
 
@@ -17,11 +17,11 @@ pub fn conditional(input: Span) -> IResult<Span, Conditional> {
     map(
         tuple((
             pair(tag("if"), ml_space1),
-            expr,
-            tuple((ml_space1, tag("then"), ml_space1)),
-            expr,
-            tuple((ml_space1, tag("else"), ml_space1)),
-            expr,
+            cut(expr),
+            cut(tuple((ml_space1, tag("then"), ml_space1))),
+            cut(expr),
+            cut(tuple((ml_space1, tag("else"), ml_space1))),
+            cut(expr),
         )),
         |(_, condition, _, then_branch, _, else_branch)| Conditional {
             condition,

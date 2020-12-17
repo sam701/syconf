@@ -25,7 +25,7 @@ pub fn func_definition(input: Span) -> IResult<Span, FuncDefinition> {
         separated_pair(
             func_arguments,
             tuple((ml_space0, tag("=>"), ml_space0)),
-            expr,
+            cut(expr),
         ),
         |(arguments, ex)| FuncDefinition {
             arguments,

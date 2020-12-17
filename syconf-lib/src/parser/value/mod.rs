@@ -58,7 +58,7 @@ fn hashmap_entry(input: Span) -> IResult<Span, HashMapEntry> {
                 expr,
             )),
             tuple((ml_space0, tag(":"), ml_space0)),
-            expr,
+            cut(expr),
         ),
         |(key, value)| HashMapEntry { key, value },
     )(input)
