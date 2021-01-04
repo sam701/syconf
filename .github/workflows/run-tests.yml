@@ -6,9 +6,9 @@ on:
       - 'syconf-bin/**'
       - 'syconf-serde/**'
       - 'Cargo.*'
-    pull_request: {}
     branches:
       - '**'
+  pull_request: {}
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
