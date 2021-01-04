@@ -1,5 +1,6 @@
 use std::fs::read_to_string;
 use std::path::Path;
+use std::sync::Arc;
 
 use crate::compiler::context::Context;
 use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
@@ -8,7 +9,6 @@ use crate::compiler::{methods, operators, Error, ErrorWithLocation};
 use crate::parser::string::ConfigString;
 use crate::parser::*;
 use crate::parser::{Expr, ExprWithLocation};
-use std::sync::Arc;
 
 pub struct Compiler;
 
@@ -24,7 +24,7 @@ impl Compiler {
             Expr::Conditional(cond) => self.conditional(ctx, cond)?,
             Expr::Logical(logical) => self.logical(ctx, logical)?,
             Expr::Suffix(suffix) => self.suffix_operator(ctx, suffix)?,
-            Expr::Import(path) => return self.import(path, &expr.location),
+            Expr::Import(path) => return self.import(path, ctx, &expr.location),
         };
         Ok(CodeNode::new(cell, Some((&expr.location).into())))
     }
@@ -202,13 +202,18 @@ impl Compiler {
         )))
     }
 
-    fn import(&self, file_name: &str, location: &Span) -> Result<CodeNode, Error> {
+    fn import(&self, file_name: &str, ctx: &Context, location: &Span) -> Result<CodeNode, Error> {
         let final_file_name = Path::new(&*location.extra)
             .parent()
             .unwrap()
             .join(file_name)
             .canonicalize()
             .unwrap();
+        let file_name_str = final_file_name.to_str().expect("absolute path").to_string();
+        if let Some(node) = ctx.get_value(&file_name_str) {
+            debug!(%file_name_str, "Found in cache");
+            return Ok(node);
+        }
         let content = read_to_string(&final_file_name).map_err(|e| ErrorWithLocation {
             location: Some(location.into()),
             message: format!(
@@ -221,7 +226,9 @@ impl Compiler {
             &content,
             final_file_name.to_str().unwrap().into(),
         ))?;
-        Compiler.compile(&Context::empty(), &expr)
+        let node = Compiler.compile(&Context::empty(), &expr)?;
+        ctx.bind(file_name_str, node.clone());
+        Ok(node)
     }
 }
 
