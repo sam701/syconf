@@ -1,11 +1,11 @@
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::io;
 use std::io::{Read, Write};
 use std::sync::Arc;
+use std::{env, io};
 
 use clap::{App, Arg};
-use tracing::Level;
+use tracing_subscriber::EnvFilter;
 
 use syconf_lib::{Number, Value};
 
@@ -13,12 +13,6 @@ fn main() {
     let matches = App::new("syconf")
         .version(env!("CARGO_PKG_VERSION"))
         .about("syconf converts syconf files into JSON/YAML/TOML")
-        .arg(
-            Arg::with_name("debug")
-                .long("debug")
-                .short("d")
-                .help("Turn on debug output"),
-        )
         .arg(
             Arg::with_name("input")
                 .help("Input file name")
@@ -46,11 +40,9 @@ fn main() {
         )
         .get_matches();
 
-    if matches.is_present("debug") {
-        tracing_subscriber::fmt()
-            .with_max_level(Level::DEBUG)
-            .init();
-    }
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::from_default_env())
+        .init();
 
     let result = match matches.value_of("input").unwrap() {
         "-" => {

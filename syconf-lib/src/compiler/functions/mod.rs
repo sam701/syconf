@@ -10,7 +10,6 @@ pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
         "read_file" => &read_file,
         "getenv" => &getenv,
         "concat" => &concat,
-        "fold" => &fold,
         "shell" => &shell,
         _ => return None,
     })
@@ -94,54 +93,6 @@ fn func_concat() {
     assert_eq!(
         crate::parse_string(r#"concat([1],[2,3],[4]) == [1, 2, 3, 4]"#).unwrap(),
         Value::Bool(true)
-    );
-}
-
-fn fold(args: &[Value]) -> Result<Value, Error> {
-    check!(
-        args.len() == 3,
-        "Fold requires 3 arguments (initial value, accumulation function, list or hashmap)"
-    );
-    let func = args[1].as_func()?;
-    match &args[2] {
-        Value::List(list) => {
-            let mut out = args[0].clone();
-            for (ix, val) in list.iter().enumerate() {
-                let args = &[out.clone(), Value::Number(ix.into()), val.clone()];
-                out = func.call(args)?;
-            }
-            Ok(out)
-        }
-        Value::HashMap(hm) => {
-            let mut out = args[0].clone();
-            for (ix, val) in hm.iter() {
-                let args = &[out.clone(), Value::String(ix.clone()), val.clone()];
-                out = func.call(args)?;
-            }
-            Ok(out)
-        }
-        _ => Err("3rd argument must be either a list or a hashmap".into()),
-    }
-}
-
-#[test]
-fn func_fold() {
-    use crate::Number;
-
-    assert_eq!(
-        crate::parse_string(r#"fold(0, (acc, ix, val) => acc + val, [1,2,3])"#).unwrap(),
-        Value::Number(Number::Int(6))
-    );
-    assert_eq!(
-        crate::parse_string(
-            r#"fold(0, (acc, ix, val) => acc + val, {
-        aa: 1,
-        bb: 2,
-        cc: 3
-    })"#
-        )
-        .unwrap(),
-        Value::Number(Number::Int(6))
     );
 }
 

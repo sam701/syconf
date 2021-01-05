@@ -11,6 +11,7 @@ pub fn method(name: &str) -> Option<&'static ListMethod> {
         "len" => &len,
         "append" => &append,
         "join" => &join,
+        "fold" => &fold,
         _ => return None,
     })
 }
@@ -72,4 +73,32 @@ fn join_list_by() {
         .unwrap(),
         Value::Bool(true)
     )
+}
+
+fn fold(list: &[Value], args: &[Value]) -> Result<Value, Error> {
+    check!(
+        args.len() == 2,
+        "Fold requires 2 arguments (initial value, accumulation function, list or hashmap)"
+    );
+
+    let func = args[0].as_func()?;
+    let mut out = args[1].clone();
+    for val in list {
+        let args = &[out.clone(), val.clone()];
+        out = func.call(args)?;
+    }
+    Ok(out)
+}
+
+#[test]
+fn test_fold() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+            [1,2,3].fold((acc, x) => acc + x, 0) == 6
+        "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    );
 }

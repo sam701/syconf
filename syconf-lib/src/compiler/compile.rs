@@ -158,7 +158,7 @@ impl Compiler {
 
     fn block(&self, ctx: &Context, block: &BlockExpr) -> Result<CodeNode, Error> {
         let ns = ctx.new_child();
-        debug!(?block.local_assignments, "blocqk");
+        debug!(?block.local_assignments, "block");
         for Assignment(id, ex) in &block.local_assignments {
             debug!(?id, ?ex, "assignment1");
             let node = self.compile(&ns, &ex)?;
