@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::compiler::value::{TypeMismatch, ValueString};
 use crate::compiler::value_extraction::ValueExtractor;
 use crate::compiler::{Error, Value};
@@ -12,6 +14,7 @@ pub fn method(name: &str) -> Option<&'static ListMethod> {
         "append" => &append,
         "join" => &join,
         "fold" => &fold,
+        "to_hashmap" => &to_hashmap,
         _ => return None,
     })
 }
@@ -96,6 +99,38 @@ fn test_fold() {
         crate::parse_string(
             r#"
             [1,2,3].fold((acc, x) => acc + x, 0) == 6
+        "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    );
+}
+
+fn to_hashmap(list: &[Value], args: &[Value]) -> Result<Value, Error> {
+    check!(args.is_empty(), "to_hashmap does not take any arguments");
+    let hm = list
+        .iter()
+        .map(|x| {
+            let li = x.as_list()?;
+            check!(
+                li.len() == 2,
+                "the inner list must be a list of two elements"
+            );
+            Ok((li[0].as_value_string()?.clone(), li[1].clone()))
+        })
+        .collect::<Result<HashMap<ValueString, Value>, Error>>()?;
+    Ok(Value::HashMap(hm.into()))
+}
+
+#[test]
+fn test_to_hashmap() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+            [
+                ["aa", 3],
+                ["bb", 4]
+            ].to_hashmap() == {aa: 3, bb: 4}
         "#
         )
         .unwrap(),

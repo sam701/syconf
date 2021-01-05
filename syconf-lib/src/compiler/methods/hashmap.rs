@@ -16,6 +16,7 @@ pub fn method(name: &str) -> Option<&'static HashmapMethod> {
         "insert" => &insert,
         "merge" => &merge,
         "drop" => &drop,
+        "to_list" => &to_list,
         _ => return None,
     })
 }
@@ -252,6 +253,37 @@ fn test_drop() {
                 }
             }
         }
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    )
+}
+
+fn to_list(hm: &HashMap<ValueString, Value>, args: &[Value]) -> Result<Value, Error> {
+    check!(args.is_empty(), "to_list does not take any arguments");
+    let mut list: Vec<Value> = hm
+        .iter()
+        .map(|(k, v)| Value::List(vec![Value::String(k.clone()), v.clone()].into()))
+        .collect();
+    list.sort_by_key(|x| {
+        x.as_list().expect("list")[0]
+            .as_value_string()
+            .expect("string")
+            .clone()
+    });
+    Ok(Value::List(list.into()))
+}
+
+#[test]
+fn test_to_list() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+        {aa: 3, bb: 4}.to_list() == [
+            ["aa", 3],
+            ["bb", 4],
+        ]
     "#
         )
         .unwrap(),

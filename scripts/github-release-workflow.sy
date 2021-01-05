@@ -6,8 +6,9 @@ let oses = [
 let build_job = import "./lib/build-job.sy"
 let create_release = import "./lib/create-release-job.sy"
 
-let build_jobs = oses.fold((acc, os) => acc.merge({"build-${os}": build_job(os)}), {})
-let release_job = {"create-release": create_release(oses)}
+let build_jobs = oses.map((os) => ["build-${os}", build_job(os)])
+	.append(["create-release", create_release(oses)])
+	.to_hashmap()
 
 in
 
@@ -16,5 +17,5 @@ in
 	on: {
 		push: {tags: '*'}
 	}
-	jobs: build_jobs.merge(release_job)
+	jobs: build_jobs
 }
