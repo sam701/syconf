@@ -354,7 +354,7 @@ checksum = "8ea5119cdb4c55b55d432abb513a0429384878c15dde60cc77b1c99de1a95a6a"
 
 [[package]]
 name = "syconf"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "clap",
  "serde",
@@ -368,7 +368,7 @@ dependencies = [
 
 [[package]]
 name = "syconf-lib"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "anyhow",
  "derivative",
@@ -384,7 +384,7 @@ dependencies = [
 
 [[package]]
 name = "syconf-serde"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "serde",
  "syconf-lib",
