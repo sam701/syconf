@@ -1,13 +1,11 @@
-use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::{Read, Write};
-use std::sync::Arc;
 use std::{env, io};
 
 use clap::{App, Arg};
 use tracing_subscriber::EnvFilter;
 
-use syconf_lib::{Number, Value};
+use syconf_lib::SerializableValue;
 
 fn main() {
     let matches = App::new("syconf")
@@ -51,11 +49,10 @@ fn main() {
             syconf_lib::parse_string(&s)
         }
         file => syconf_lib::parse_file(file),
-    }
-    .map(|x| to_serializable(&x));
+    };
 
     let val = match result {
-        Ok(val) => val,
+        Ok(val) => val.to_serializable(),
         Err(e) => {
             eprintln!("ERROR: {}", e);
             std::process::exit(1);
@@ -95,30 +92,5 @@ fn to_yaml_stream(val: &SerializableValue) -> String {
             .collect::<Vec<String>>()
             .join("\n\n"),
         v => serde_yaml::to_string(v).unwrap(),
-    }
-}
-
-#[derive(serde::Serialize)]
-#[serde(untagged)]
-enum SerializableValue {
-    Bool(bool),
-    Number(Number),
-    String(Arc<str>),
-    HashMap(BTreeMap<Arc<str>, SerializableValue>),
-    List(Arc<[SerializableValue]>),
-}
-
-fn to_serializable(v: &Value) -> SerializableValue {
-    match v {
-        Value::Bool(x) => SerializableValue::Bool(*x),
-        Value::Number(x) => SerializableValue::Number(x.clone()),
-        Value::String(x) => SerializableValue::String(x.clone()),
-        Value::HashMap(x) => SerializableValue::HashMap(
-            x.iter()
-                .map(|(k, v)| (k.clone(), to_serializable(v)))
-                .collect(),
-        ),
-        Value::List(x) => SerializableValue::List(x.iter().map(to_serializable).collect()),
-        Value::Func(_) => SerializableValue::String("<function>".into()),
     }
 }

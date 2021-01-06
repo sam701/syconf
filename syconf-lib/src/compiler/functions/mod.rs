@@ -2,6 +2,8 @@ use std::fs::File;
 use std::io::Read;
 use std::process::Command;
 
+use handlebars::Handlebars;
+
 use crate::compiler::value::FunctionSig;
 use crate::compiler::{Error, Value};
 
@@ -11,6 +13,7 @@ pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
         "getenv" => &getenv,
         "concat" => &concat,
         "shell" => &shell,
+        "handlebars" => &handlebars_template,
         _ => return None,
     })
 }
@@ -121,6 +124,28 @@ fn test_shell() {
         crate::parse_string(
             r#"
     shell("echo abc").trim() == "abc"
+    "#
+        )
+        .unwrap(),
+        Value::Bool(true)
+    );
+}
+
+fn handlebars_template(args: &[Value]) -> Result<Value, Error> {
+    check!(args.len() == 2, "handlebars function expects two arguments");
+    let template = args[0].as_value_string()?;
+    Handlebars::new()
+        .render_template(template.as_ref(), &args[1].to_serializable())
+        .map_err(|e| format!("cannot render template: {}", e).into())
+        .map(|x| Value::String(x.into()))
+}
+
+#[test]
+fn test_template() {
+    assert_eq!(
+        crate::parse_string(
+            r#"
+    handlebars("hello {{name}}", {name: "Mouse"}) == "hello Mouse"
     "#
         )
         .unwrap(),

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use context::Context;
-pub use value::{Func, TypeMismatch, Value, ValueString};
+pub use value::{Func, SerializableValue, TypeMismatch, Value, ValueString};
 
 use crate::parser::ExprWithLocation;
 pub use error::{Error, ErrorWithLocation};

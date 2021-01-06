@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::sync::Arc;
 
@@ -89,6 +89,23 @@ impl Value {
             Ok(func.clone())
         } else {
             Err(self.fail("function"))
+        }
+    }
+
+    pub fn to_serializable(&self) -> SerializableValue {
+        match self {
+            Value::Bool(x) => SerializableValue::Bool(*x),
+            Value::Number(x) => SerializableValue::Number(x.clone()),
+            Value::String(x) => SerializableValue::String(x.clone()),
+            Value::HashMap(x) => SerializableValue::HashMap(
+                x.iter()
+                    .map(|(k, v)| (k.clone(), v.to_serializable()))
+                    .collect(),
+            ),
+            Value::List(x) => {
+                SerializableValue::List(x.iter().map(Value::to_serializable).collect())
+            }
+            Value::Func(_) => SerializableValue::String("<function>".into()),
         }
     }
 }
@@ -198,4 +215,14 @@ impl UserDefinedFunction {
         }
         self.definition.node.resolve(&nctx)
     }
+}
+
+#[derive(serde::Serialize)]
+#[serde(untagged)]
+pub enum SerializableValue {
+    Bool(bool),
+    Number(Number),
+    String(Arc<str>),
+    HashMap(BTreeMap<Arc<str>, SerializableValue>),
+    List(Arc<[SerializableValue]>),
 }
