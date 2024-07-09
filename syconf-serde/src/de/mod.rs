@@ -5,7 +5,6 @@ use std::vec;
 use serde::de::{DeserializeSeed, EnumAccess, MapAccess, SeqAccess, VariantAccess, Visitor};
 
 pub use func::Function;
-pub use syconf_lib::ErrorWithLocation;
 use syconf_lib::{Func, Number, Value, ValueString};
 
 use crate::Error;
