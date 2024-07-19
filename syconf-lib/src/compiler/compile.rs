@@ -62,14 +62,14 @@ impl Compiler {
             Logical::And(expr1, expr2) => (
                 &operators::and,
                 "and",
-                vec![self.compile(ctx, &expr1)?, self.compile(ctx, &expr2)?],
+                vec![self.compile(ctx, expr1)?, self.compile(ctx, expr2)?],
             ),
             Logical::Or(expr1, expr2) => (
                 &operators::or,
                 "or",
-                vec![self.compile(ctx, &expr1)?, self.compile(ctx, &expr2)?],
+                vec![self.compile(ctx, expr1)?, self.compile(ctx, expr2)?],
             ),
-            Logical::Not(expr1) => (&operators::not, "not", vec![self.compile(ctx, &expr1)?]),
+            Logical::Not(expr1) => (&operators::not, "not", vec![self.compile(ctx, expr1)?]),
         };
         Ok(NodeContent::FunctionCall {
             name: name.to_string(),
@@ -161,7 +161,7 @@ impl Compiler {
         debug!(?block.local_assignments, "block");
         for Assignment(id, ex) in &block.local_assignments {
             debug!(?id, ?ex, "assignment1");
-            let node = self.compile(&ns, &ex)?;
+            let node = self.compile(&ns, ex)?;
             debug!(?id, ?node, "assignment2: binding {}", id);
             ns.bind(id.to_string(), node);
         }

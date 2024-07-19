@@ -24,7 +24,7 @@ impl Context {
         let x = self.0.lock().expect("cannot lock");
         x.bindings
             .get(val)
-            .map(Clone::clone)
+            .cloned()
             .or_else(|| x.parent.as_ref().and_then(|p| p.get_value(val)))
     }
 

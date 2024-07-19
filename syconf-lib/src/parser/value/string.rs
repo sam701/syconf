@@ -64,7 +64,7 @@ fn interpolated_string(input: Span) -> IResult<Span, ConfigString> {
         }));
     }
     match input.fragment().find_substring("${") {
-        Some(x) if x == 0 => map(
+        Some(0) => map(
             delimited(ml_space0, expr, pair(ml_space0, tag("}"))),
             ConfigString::Interpolated,
         )(input.take_split(2).0),

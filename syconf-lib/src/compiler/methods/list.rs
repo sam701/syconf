@@ -59,7 +59,7 @@ fn join(list: &[Value], args: &[Value]) -> Result<Value, Error> {
     check!(args.len() == 1, "'join' takes exactly one argument");
     let strings_to_join = list
         .iter()
-        .map(|x| x.as_value_string().map(|x| x.clone()))
+        .map(|x| x.as_value_string().cloned())
         .collect::<Result<Vec<ValueString>, TypeMismatch>>()?;
     let join_by = args[0].as_value_string()?;
     Ok(Value::String(strings_to_join.join(join_by).into()))

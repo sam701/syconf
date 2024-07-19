@@ -14,7 +14,7 @@ mod func;
 mod tests;
 
 thread_local! {
-    static FUNC: RefCell<Option<Func>> = RefCell::new(None);
+    static FUNC: RefCell<Option<Func>> = const {RefCell::new(None)};
 }
 
 pub struct Deserializer {
@@ -210,8 +210,9 @@ impl<'de> serde::Deserializer<'de> for Deserializer {
     where
         V: Visitor<'de>,
     {
+        let b = self.value.as_list()?.to_owned();
         visitor.visit_seq(Seq {
-            iterator: self.value.as_list()?.to_vec().into_iter(),
+            iterator: b.into_iter(),
         })
     }
 
