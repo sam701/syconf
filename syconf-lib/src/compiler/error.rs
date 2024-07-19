@@ -1,7 +1,4 @@
-use std::cmp::min;
 use std::sync::Arc;
-
-use nom::error::ErrorKind;
 use nom::{Err, InputLength};
 
 use crate::compiler::value::TypeMismatch;
@@ -67,23 +64,26 @@ impl<'a> From<&Span<'a>> for ErrorWithLocation {
             location: Some(loc.into()),
             message: format!(
                 "Cannot parse: '{}'",
-                &loc.fragment()[..min(20, loc.input_len())]
+                &loc.fragment()[..std::cmp::min(20, loc.input_len())]
             ),
         }
     }
 }
 
-impl<'a> From<Err<(Span<'a>, ErrorKind)>> for ErrorWithLocation {
-    fn from(e: Err<(Span<'a>, ErrorKind)>) -> Self {
+// impl<'a> From<Err<(Span<'a>, ErrorKind)>> for ErrorWithLocation {
+impl<'a> From<Err<nom::error::Error<Span<'a>>>> for ErrorWithLocation {
+    fn from(e: Err<nom::error::Error<Span<'a>>>) -> Self {
         match e {
             Err::Incomplete(_) => ErrorWithLocation {
                 location: None,
                 message: "Incomplete input".to_owned(),
             },
-            Err::Error((loc, _)) => (&loc).into(),
-            Err::Failure((loc, _)) => (&loc).into(),
+            Err::Error(x) => (&x.input).into(),
+            Err::Failure(x) => (&x.input).into(),
         }
     }
+    // fn from(e: Err<nom::error::Error<Span<'a>>) -> Self {
+    // }
 }
 
 #[macro_export]

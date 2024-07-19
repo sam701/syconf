@@ -3,7 +3,7 @@ use nom::bytes::complete::*;
 
 use nom::combinator::map;
 
-use nom::multi::separated_list;
+use nom::multi::separated_list0;
 
 use nom::sequence::{delimited, pair, separated_pair, tuple};
 use nom::{IResult, InputLength, InputTake};
@@ -84,7 +84,7 @@ fn sep(input: Span) -> IResult<Span, &str> {
 fn list(input: Span) -> IResult<Span, Vec<ExprWithLocation>> {
     delimited(
         pair(tag("["), ml_space0),
-        separated_list(sep, expr),
+        separated_list0(sep, expr),
         pair(alt((sep, ml_space0)), tag("]")),
     )(input)
 }
@@ -96,7 +96,7 @@ fn hashmap(input: Span) -> IResult<Span, Vec<HashMapEntry>> {
 pub fn hashmap_body(input: Span) -> IResult<Span, Vec<HashMapEntry>> {
     delimited(
         ml_space0,
-        map(separated_list(alt((sep, ml_space1)), hashmap_entry), |x| {
+        map(separated_list0(alt((sep, ml_space1)), hashmap_entry), |x| {
             x.into_iter().collect()
         }),
         alt((sep, ml_space0)),

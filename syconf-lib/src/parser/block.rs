@@ -1,6 +1,6 @@
 use nom::bytes::complete::*;
 use nom::combinator::{map, opt};
-use nom::multi::separated_nonempty_list;
+use nom::multi::separated_list1;
 use nom::sequence::{delimited, pair, tuple};
 use nom::IResult;
 
@@ -34,7 +34,7 @@ pub fn block_body(input: Span) -> IResult<Span, BlockExpr> {
             ml_space0,
             pair(
                 pair(
-                    separated_nonempty_list(ml_space1, assignment),
+                    separated_list1(ml_space1, assignment),
                     cut(tuple((ml_space1, tag("in"), ml_space1))),
                 ),
                 expr,
