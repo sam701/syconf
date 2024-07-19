@@ -31,7 +31,7 @@ enum UntaggedEnum {
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
-#[serde(tag = "type", content = "abc")]
+#[serde(tag = "tt", content = "abc")]
 enum InternallyTaggedEnum {
     String0,
     String1(String),
@@ -107,14 +107,15 @@ fn deserialize_untagged_enum() {
 
 #[test]
 fn deserialize_internally_tagged_enum() {
-    let abc: InternallyTaggedEnum = from_str(r#" {type: "String0"} "#).unwrap();
+    // TODO: it is weird that a hashmap ({String0: 23452345}) is inspected instead of just 'String0'.
+    let abc: InternallyTaggedEnum = from_str(r#" {tt: {String0: 12}} "#).unwrap();
     assert_eq!(abc, InternallyTaggedEnum::String0);
 
-    let abc: InternallyTaggedEnum = from_str(r#" {type: "String1", abc: "aa"}"#).unwrap();
+    let abc: InternallyTaggedEnum = from_str(r#" {tt: {String1: 44}, abc: "aa"}"#).unwrap();
     assert_eq!(abc, InternallyTaggedEnum::String1("aa".to_owned()));
 
     let abc: InternallyTaggedEnum =
-        from_str(r#" {type: "String2", abc: {content: "aa"}}"#).unwrap();
+        from_str(r#" {tt: {String2: 33}, abc: {content: "aa"}}"#).unwrap();
     assert_eq!(
         abc,
         InternallyTaggedEnum::String2 {

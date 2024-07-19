@@ -58,7 +58,10 @@ fn raw_string_vec() {
 
 fn interpolated_string(input: Span) -> IResult<Span, ConfigString> {
     if input.fragment().is_empty() {
-        return Err(nom::Err::Error(nom::error::Error{input, code: ErrorKind::Eof}));
+        return Err(nom::Err::Error(nom::error::Error {
+            input,
+            code: ErrorKind::Eof,
+        }));
     }
     match input.fragment().find_substring("${") {
         Some(x) if x == 0 => map(

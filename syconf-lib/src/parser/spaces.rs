@@ -23,7 +23,10 @@ fn test_ml_space1() {
     assert_eq!(ml_space1(span("// hello\n//")).unwrap().1, "// hello\n//");
     assert_eq!(
         ml_space1(span("")),
-        Err(nom::Err::Error(nom::error::Error{input: span(""), code: ErrorKind::Verify}))
+        Err(nom::Err::Error(nom::error::Error {
+            input: span(""),
+            code: ErrorKind::Verify
+        }))
     );
 }
 

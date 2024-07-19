@@ -1,5 +1,5 @@
-use std::sync::Arc;
 use nom::{Err, InputLength};
+use std::sync::Arc;
 
 use crate::compiler::value::TypeMismatch;
 use crate::parser::Span;
