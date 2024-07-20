@@ -24,7 +24,7 @@ pub enum Expr<'a> {
     Block(BlockExpr<'a>),
     Identifier(&'a str),
     FuncDefinition(Rc<FuncDefinition<'a>>),
-    Math(Box<MathOperation<'a>>),
+    BinaryOperator(Box<BinaryOperatorExpr<'a>>),
     Comparison(Box<Comparison<'a>>),
     Conditional(Box<Conditional<'a>>),
     Logical(Box<Logical<'a>>),

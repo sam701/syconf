@@ -1,15 +1,15 @@
 use crate::parser::number::Number;
-use crate::parser::MathOp;
+use crate::parser::BinaryOperator;
 use crate::resolver::value::FunctionSig;
 use crate::resolver::{Error, Value};
 use std::ops::{Add, Div, Mul, Sub};
 
-pub fn math(op: &MathOp) -> &'static FunctionSig {
+pub fn math(op: &BinaryOperator) -> &'static FunctionSig {
     match op {
-        MathOp::Add => &op_add,
-        MathOp::Sub => &op_sub,
-        MathOp::Mul => &op_mul,
-        MathOp::Div => &op_div,
+        BinaryOperator::Add => &op_add,
+        BinaryOperator::Sub => &op_sub,
+        BinaryOperator::Mul => &op_mul,
+        BinaryOperator::Div => &op_div,
     }
 }
 

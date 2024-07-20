@@ -4,13 +4,13 @@ use nom::combinator::{all_consuming, cut, map, peek};
 use nom::sequence::{delimited, pair, preceded, tuple};
 use nom::IResult;
 
+pub use binary_operators::*;
 pub use block::{Assignment, BlockExpr};
 pub use comparison::*;
 pub use conditional::*;
 pub use expr::*;
 pub use func::*;
 pub use logical::*;
-pub use math::*;
 pub use spaces::*;
 pub use suffix_operators::*;
 pub use value::*;
@@ -18,6 +18,7 @@ pub use value::*;
 use crate::parser::block::block_body;
 use std::sync::Arc;
 
+mod binary_operators;
 mod block;
 mod comparison;
 mod conditional;
@@ -25,7 +26,6 @@ mod expr;
 mod func;
 mod leaf;
 mod logical;
-mod math;
 mod spaces;
 mod suffix_operators;
 #[cfg(test)]

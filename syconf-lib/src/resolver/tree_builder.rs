@@ -19,7 +19,7 @@ impl NodeTreeBuilder {
             Expr::Block(block) => return self.block(ctx, block),
             Expr::Identifier(id) => self.identifier(ctx, id, &expr.location)?,
             Expr::FuncDefinition(fd) => self.func_definition(ctx, fd)?,
-            Expr::Math(op) => self.math_op(ctx, op)?,
+            Expr::BinaryOperator(op) => self.math_op(ctx, op)?,
             Expr::Comparison(cmp) => self.comparison(ctx, cmp)?,
             Expr::Conditional(cond) => self.conditional(ctx, cond)?,
             Expr::Logical(logical) => self.logical(ctx, logical)?,
@@ -103,7 +103,7 @@ impl NodeTreeBuilder {
         })
     }
 
-    fn math_op(&self, ctx: &Context, op: &MathOperation) -> Result<NodeContent, Error> {
+    fn math_op(&self, ctx: &Context, op: &BinaryOperatorExpr) -> Result<NodeContent, Error> {
         let args = vec![
             self.build_tree(ctx, &op.expr1)?,
             self.build_tree(ctx, &op.expr2)?,

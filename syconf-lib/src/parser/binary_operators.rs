@@ -8,14 +8,14 @@ use super::*;
 use nom_locate::position;
 
 #[derive(Debug, PartialEq)]
-pub struct MathOperation<'a> {
+pub struct BinaryOperatorExpr<'a> {
     pub expr1: ExprWithLocation<'a>,
     pub expr2: ExprWithLocation<'a>,
-    pub op: MathOp,
+    pub op: BinaryOperator,
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub enum MathOp {
+pub enum BinaryOperator {
     Add,
     Sub,
     Mul,
@@ -35,9 +35,9 @@ pub fn expr_sum(input: Span) -> IResult<Span, ExprWithLocation> {
                             (
                                 rem,
                                 if x.fragment() == &"+" {
-                                    MathOp::Add
+                                    BinaryOperator::Add
                                 } else {
-                                    MathOp::Sub
+                                    BinaryOperator::Sub
                                 },
                             )
                         },
@@ -47,7 +47,7 @@ pub fn expr_sum(input: Span) -> IResult<Span, ExprWithLocation> {
                 cut(expr_sum),
             )),
         )),
-        |(a, x)| map_math_op(a, x),
+        |(a, x)| map_binary_operator(a, x),
     )(input)
 }
 
@@ -65,9 +65,9 @@ pub fn expr_prod(input: Span) -> IResult<Span, ExprWithLocation> {
                             (
                                 rem,
                                 if x.fragment() == &"*" {
-                                    MathOp::Mul
+                                    BinaryOperator::Mul
                                 } else {
-                                    MathOp::Div
+                                    BinaryOperator::Div
                                 },
                             )
                         },
@@ -77,17 +77,18 @@ pub fn expr_prod(input: Span) -> IResult<Span, ExprWithLocation> {
                 cut(expr_prod),
             )),
         )),
-        |(a, x)| map_math_op(a, x),
+        |(a, x)| map_binary_operator(a, x),
     )(input)
 }
 
-fn map_math_op<'a>(
+fn map_binary_operator<'a>(
     expr1: ExprWithLocation<'a>,
-    x: Option<((Span<'a>, MathOp), ExprWithLocation<'a>)>,
+    x: Option<((Span<'a>, BinaryOperator), ExprWithLocation<'a>)>,
 ) -> ExprWithLocation<'a> {
     match x {
         Some(((position, op), expr2)) => {
-            Expr::Math(Box::new(MathOperation { expr1, expr2, op })).with_location(position)
+            Expr::BinaryOperator(Box::new(BinaryOperatorExpr { expr1, expr2, op }))
+                .with_location(position)
         }
         None => expr1,
     }
