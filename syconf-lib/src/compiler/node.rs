@@ -43,6 +43,7 @@ pub struct HmEntry {
     pub value: CodeNode,
 }
 
+/// Code snippet with its location.
 #[derive(Clone, Derivative)]
 #[derivative(Debug = "transparent")]
 pub struct CodeNode(Arc<CodeNodeRef>);
@@ -55,6 +56,7 @@ struct CodeNodeRef {
     content: NodeContent,
 }
 
+/// CodeNode corresponds to a code snippet.
 impl CodeNode {
     pub fn new(content: NodeContent, location: Option<Location>) -> Self {
         Self(Arc::new(CodeNodeRef { content, location }))
