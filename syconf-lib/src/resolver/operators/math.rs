@@ -1,7 +1,7 @@
-use crate::compiler::value::FunctionSig;
-use crate::compiler::{Error, Value};
 use crate::parser::number::Number;
 use crate::parser::MathOp;
+use crate::resolver::value::FunctionSig;
+use crate::resolver::{Error, Value};
 use std::ops::{Add, Div, Mul, Sub};
 
 pub fn math(op: &MathOp) -> &'static FunctionSig {

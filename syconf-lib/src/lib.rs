@@ -10,12 +10,12 @@ use std::path::Path;
 
 use parser::*;
 
-pub use crate::compiler::ErrorWithLocation;
-pub use crate::compiler::{Func, SerializableValue, TypeMismatch, Value, ValueString};
+pub use crate::resolver::ErrorWithLocation;
+pub use crate::resolver::{Func, SerializableValue, TypeMismatch, Value, ValueString};
 pub use parser::Number;
 
-mod compiler;
 mod parser;
+mod resolver;
 
 #[cfg(test)]
 mod tests;
@@ -42,5 +42,5 @@ fn parse_source(source: Span) -> Result<Value, ErrorWithLocation> {
     if !rest.fragment().is_empty() {
         return Err(anyhow!("Cannot parse (incomplete): '{}'", rest.fragment()).into());
     }
-    compiler::compile(&expr)
+    resolver::resolve(&expr)
 }

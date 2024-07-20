@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use crate::compiler::error::Location;
-use crate::compiler::value::{Func, ValueString};
-use crate::compiler::*;
+use crate::resolver::error::Location;
+use crate::resolver::value::{Func, ValueString};
+use crate::resolver::*;
 
 use super::context::Context;
 use super::value::Value;

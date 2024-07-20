@@ -1,6 +1,6 @@
 use super::value::Func;
 use super::{Error, Value};
-use crate::compiler::value::ValueString;
+use crate::resolver::value::ValueString;
 
 pub struct ValueExtractor<'a>(&'a [Value]);
 

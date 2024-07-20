@@ -2,18 +2,18 @@ use std::fs::read_to_string;
 use std::path::Path;
 use std::sync::Arc;
 
-use crate::compiler::context::Context;
-use crate::compiler::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
-use crate::compiler::value::{Func, FunctionSig, Value};
-use crate::compiler::{methods, operators, Error, ErrorWithLocation};
 use crate::parser::string::ConfigString;
 use crate::parser::*;
 use crate::parser::{Expr, ExprWithLocation};
+use crate::resolver::context::Context;
+use crate::resolver::node::{CodeNode, FunctionDefinition, HmEntry, NodeContent};
+use crate::resolver::value::{Func, FunctionSig, Value};
+use crate::resolver::{methods, operators, Error, ErrorWithLocation};
 
-pub struct Compiler;
+pub struct NodeTreeBuilder;
 
-impl Compiler {
-    pub fn compile(&self, ctx: &Context, expr: &ExprWithLocation) -> Result<CodeNode, Error> {
+impl NodeTreeBuilder {
+    pub fn build_tree(&self, ctx: &Context, expr: &ExprWithLocation) -> Result<CodeNode, Error> {
         let cell = match &expr.inner {
             Expr::Value(val) => self.config_value(ctx, val)?,
             Expr::Block(block) => return self.block(ctx, block),
@@ -30,25 +30,25 @@ impl Compiler {
     }
 
     fn suffix_operator(&self, ctx: &Context, suffix: &SuffixExpr) -> Result<NodeContent, Error> {
-        let base = self.compile(ctx, &suffix.base)?;
+        let base = self.build_tree(ctx, &suffix.base)?;
         debug!(?suffix, "suffix_op");
         let args = match &suffix.operator {
             SuffixOperator::FunctionApplication(args) => {
                 return Ok(NodeContent::FunctionCall {
                     name: ".apply".to_string(),
                     function: base,
-                    arguments: Some(args.iter().map(|x| self.compile(ctx, x)).collect::<Result<
-                        Vec<CodeNode>,
-                        Error,
-                    >>(
-                    )?),
+                    arguments: Some(
+                        args.iter()
+                            .map(|x| self.build_tree(ctx, x))
+                            .collect::<Result<Vec<CodeNode>, Error>>()?,
+                    ),
                 });
             }
             SuffixOperator::DotField(id) => vec![
                 base,
                 CodeNode::new(NodeContent::Resolved(Value::String((*id).into())), None),
             ],
-            SuffixOperator::Index(ix) => vec![base, self.compile(ctx, ix)?],
+            SuffixOperator::Index(ix) => vec![base, self.build_tree(ctx, ix)?],
         };
         Ok(NodeContent::FunctionCall {
             name: ".get".to_string(),
@@ -62,14 +62,14 @@ impl Compiler {
             Logical::And(expr1, expr2) => (
                 &operators::and,
                 "and",
-                vec![self.compile(ctx, expr1)?, self.compile(ctx, expr2)?],
+                vec![self.build_tree(ctx, expr1)?, self.build_tree(ctx, expr2)?],
             ),
             Logical::Or(expr1, expr2) => (
                 &operators::or,
                 "or",
-                vec![self.compile(ctx, expr1)?, self.compile(ctx, expr2)?],
+                vec![self.build_tree(ctx, expr1)?, self.build_tree(ctx, expr2)?],
             ),
-            Logical::Not(expr1) => (&operators::not, "not", vec![self.compile(ctx, expr1)?]),
+            Logical::Not(expr1) => (&operators::not, "not", vec![self.build_tree(ctx, expr1)?]),
         };
         Ok(NodeContent::FunctionCall {
             name: name.to_string(),
@@ -80,16 +80,16 @@ impl Compiler {
 
     fn conditional(&self, ctx: &Context, cond: &Conditional) -> Result<NodeContent, Error> {
         Ok(NodeContent::Conditional {
-            condition: self.compile(ctx, &cond.condition)?,
-            then_branch: self.compile(ctx, &cond.then_branch)?,
-            else_branch: self.compile(ctx, &cond.else_branch)?,
+            condition: self.build_tree(ctx, &cond.condition)?,
+            then_branch: self.build_tree(ctx, &cond.then_branch)?,
+            else_branch: self.build_tree(ctx, &cond.else_branch)?,
         })
     }
 
     fn comparison(&self, ctx: &Context, cmp: &Comparison) -> Result<NodeContent, Error> {
         let args = vec![
-            self.compile(ctx, &cmp.expr1)?,
-            self.compile(ctx, &cmp.expr2)?,
+            self.build_tree(ctx, &cmp.expr1)?,
+            self.build_tree(ctx, &cmp.expr2)?,
         ];
         Ok(NodeContent::FunctionCall {
             name: format!("{:?}", cmp.operator),
@@ -104,7 +104,10 @@ impl Compiler {
     }
 
     fn math_op(&self, ctx: &Context, op: &MathOperation) -> Result<NodeContent, Error> {
-        let args = vec![self.compile(ctx, &op.expr1)?, self.compile(ctx, &op.expr2)?];
+        let args = vec![
+            self.build_tree(ctx, &op.expr1)?,
+            self.build_tree(ctx, &op.expr2)?,
+        ];
         Ok(NodeContent::FunctionCall {
             name: format!("{:?}", op.op),
             function: CodeNode::new(
@@ -124,15 +127,15 @@ impl Compiler {
                 .iter()
                 .map(|HashMapEntry { key, value }| {
                     Ok(HmEntry {
-                        key: self.compile(ctx, key)?,
-                        value: self.compile(ctx, value)?,
+                        key: self.build_tree(ctx, key)?,
+                        value: self.build_tree(ctx, value)?,
                     })
                 })
                 .collect::<Result<Vec<HmEntry>, Error>>()
                 .map(NodeContent::HashMap),
             ConfigValue::List(list) => list
                 .iter()
-                .map(|x| self.compile(ctx, x))
+                .map(|x| self.build_tree(ctx, x))
                 .collect::<Result<Vec<CodeNode>, Error>>()
                 .map(NodeContent::List),
         }
@@ -146,7 +149,7 @@ impl Compiler {
                     NodeContent::Resolved(Value::String((*s).into())),
                     None,
                 )),
-                ConfigString::Interpolated(a) => self.compile(ctx, a),
+                ConfigString::Interpolated(a) => self.build_tree(ctx, a),
             })
             .collect::<Result<Vec<CodeNode>, Error>>()?;
         Ok(NodeContent::FunctionCall {
@@ -161,11 +164,11 @@ impl Compiler {
         debug!(?block.local_assignments, "block");
         for Assignment(id, ex) in &block.local_assignments {
             debug!(?id, ?ex, "assignment1");
-            let node = self.compile(&ns, ex)?;
+            let node = self.build_tree(&ns, ex)?;
             debug!(?id, ?node, "assignment2: binding {}", id);
             ns.bind(id.to_string(), node);
         }
-        self.compile(&ns, &block.expression)
+        self.build_tree(&ns, &block.expression)
     }
 
     fn identifier(&self, ctx: &Context, id: &str, loc: &Span) -> Result<NodeContent, Error> {
@@ -192,7 +195,7 @@ impl Compiler {
                 CodeNode::new(NodeContent::FunctionInputArgument(arg.to_string()), None),
             );
         }
-        let val = self.compile(&ns, &fd.expression)?;
+        let val = self.build_tree(&ns, &fd.expression)?;
         let string_args: Vec<String> = fd.arguments.iter().map(|x| x.to_string()).collect();
         Ok(NodeContent::FunctionDefinition(Arc::new(
             FunctionDefinition {
@@ -226,7 +229,7 @@ impl Compiler {
             &content,
             final_file_name.to_str().unwrap().into(),
         ))?;
-        let node = Compiler.compile(&Context::empty(), &expr)?;
+        let node = NodeTreeBuilder.build_tree(&Context::empty(), &expr)?;
         ctx.bind(file_name_str, node.clone());
         Ok(node)
     }

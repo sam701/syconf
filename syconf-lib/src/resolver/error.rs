@@ -1,8 +1,8 @@
 use nom::{Err, InputLength};
 use std::sync::Arc;
 
-use crate::compiler::value::TypeMismatch;
 use crate::parser::Span;
+use crate::resolver::value::TypeMismatch;
 
 pub type Error = ErrorWithLocation;
 
@@ -90,7 +90,7 @@ impl<'a> From<Err<nom::error::Error<Span<'a>>>> for ErrorWithLocation {
 macro_rules! check {
     ($cond:expr, $msg:literal $(,)?) => {
         if !$cond {
-            return Err($crate::compiler::error::ErrorWithLocation{
+            return Err($crate::resolver::error::ErrorWithLocation{
                 location: None,
                 message: $msg.to_string(),
             });
@@ -98,7 +98,7 @@ macro_rules! check {
     };
     ($cond:expr, $fmt:expr, $($arg:tt)*) => {
         if !$cond {
-            return Err($crate::compiler::error::ErrorWithLocation{
+            return Err($crate::resolver::error::ErrorWithLocation{
                 location: None,
                 message: format!($fmt, $($arg)*),
             });

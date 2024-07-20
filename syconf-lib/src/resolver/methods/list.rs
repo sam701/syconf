@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::compiler::value::{TypeMismatch, ValueString};
-use crate::compiler::value_extraction::ValueExtractor;
-use crate::compiler::{Error, Value};
+use crate::resolver::value::{TypeMismatch, ValueString};
+use crate::resolver::value_extraction::ValueExtractor;
+use crate::resolver::{Error, Value};
 
 pub type ListMethod = dyn Fn(&[Value], &[Value]) -> Result<Value, Error> + Send + Sync;
 

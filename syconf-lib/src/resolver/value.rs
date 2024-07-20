@@ -3,12 +3,12 @@ use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::sync::Arc;
 
-use crate::compiler::context::Context;
-use crate::compiler::methods::hashmap::HashmapMethod;
-use crate::compiler::methods::list::ListMethod;
-use crate::compiler::methods::string::StringMethod;
-use crate::compiler::node::{FunctionDefinition, NodeContent};
-use crate::compiler::{Error, ErrorWithLocation};
+use crate::resolver::context::Context;
+use crate::resolver::methods::hashmap::HashmapMethod;
+use crate::resolver::methods::list::ListMethod;
+use crate::resolver::methods::string::StringMethod;
+use crate::resolver::node::{FunctionDefinition, NodeContent};
+use crate::resolver::{Error, ErrorWithLocation};
 
 use super::node::CodeNode;
 use crate::parser::number::Number;

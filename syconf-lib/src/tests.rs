@@ -1,5 +1,5 @@
-use crate::compiler::Value;
 use crate::parse_string;
+use crate::resolver::Value;
 use std::collections::HashMap;
 
 use crate::parser::number::Number;

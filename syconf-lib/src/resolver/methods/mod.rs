@@ -1,5 +1,5 @@
-use crate::compiler::value::{Func, Method};
-use crate::compiler::{Error, Value};
+use crate::resolver::value::{Func, Method};
+use crate::resolver::{Error, Value};
 
 pub mod hashmap;
 pub mod list;

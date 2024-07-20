@@ -9,7 +9,7 @@ use nom::IResult;
 use serde::{Deserialize, Serialize};
 
 use super::*;
-use crate::compiler::Error;
+use crate::resolver::Error;
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]

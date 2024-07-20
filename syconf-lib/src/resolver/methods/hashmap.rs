@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::compiler::value::ValueString;
-use crate::compiler::value_extraction::ValueExtractor;
-use crate::compiler::{Error, Value};
+use crate::resolver::value::ValueString;
+use crate::resolver::value_extraction::ValueExtractor;
+use crate::resolver::{Error, Value};
 
 pub type HashmapMethod =
     dyn Fn(&HashMap<ValueString, Value>, &[Value]) -> Result<Value, Error> + Send + Sync;

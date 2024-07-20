@@ -4,8 +4,8 @@ use std::process::Command;
 
 use handlebars::Handlebars;
 
-use crate::compiler::value::FunctionSig;
-use crate::compiler::{Error, Value};
+use crate::resolver::value::FunctionSig;
+use crate::resolver::{Error, Value};
 
 pub fn lookup(function_name: &str) -> Option<&'static FunctionSig> {
     Some(match function_name {

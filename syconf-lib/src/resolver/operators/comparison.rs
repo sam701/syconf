@@ -1,6 +1,6 @@
-use crate::compiler::value::FunctionSig;
-use crate::compiler::{Error, Value};
 use crate::parser::ComparisonOperator;
+use crate::resolver::value::FunctionSig;
+use crate::resolver::{Error, Value};
 
 pub fn comparison(op: &ComparisonOperator) -> &'static FunctionSig {
     use ComparisonOperator::*;

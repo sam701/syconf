@@ -1,7 +1,7 @@
 use std::cmp::min;
 use std::sync::Arc;
 
-use crate::compiler::{Error, Value};
+use crate::resolver::{Error, Value};
 
 pub type StringMethod = dyn Fn(&str, &[Value]) -> Result<Value, Error> + Send + Sync;
 
